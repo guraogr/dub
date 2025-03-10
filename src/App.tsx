@@ -7,6 +7,7 @@ import HomePage from './pages/HomePage';
 import CreateAvailabilityPage from './pages/CreateAvailabilityPage';
 import MessagesPage from './pages/MessagesPage';
 import ProfilePage from './pages/ProfilePage';
+import AppointmentCompletedPage from './pages/AppointmentCompletedPage';
 
 function App() {
   const [session, setSession] = useState<any>(null);
@@ -43,7 +44,7 @@ function App() {
         <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
         <Route path="/messages" element={session ? <MessagesPage /> : <Navigate to="/login" />} />
         <Route path="/profile" element={session ? <ProfilePage /> : <Navigate to="/login" />} />
-
+        <Route path="/appointment-completed/:id" element={session ? <AppointmentCompletedPage /> : <Navigate to="/login" />} />
       </Routes>
     </Router>
   );
