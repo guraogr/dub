@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import InviteModal from '../components/InviteModal';
@@ -6,7 +6,7 @@ import InviteModal from '../components/InviteModal';
 const HomePage = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const currentDate = new Date();
   const [availabilities, setAvailabilities] = useState<any[]>([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -160,23 +160,7 @@ const HomePage = () => {
     }
   };
 
-  // 仮のユーザーデータ
-  const dummyUsers = [
-    {
-      id: '1',
-      name: '山田太郎',
-      comment: 'コーヒー飲みたい',
-      time: '10:00-12:00',
-      availabilityId: '1'
-    },
-    {
-      id: '2',
-      name: '佐藤花子',
-      comment: '映画見に行きたい',
-      time: '13:00-15:00',
-      availabilityId: '2'
-    }
-  ];
+
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">読み込み中...</div>;

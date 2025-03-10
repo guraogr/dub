@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
@@ -24,7 +24,7 @@ const CreateAvailabilityPage = () => {
       }
   
       // usersテーブルにユーザーが存在するか確認
-      const { data: userExists, error: userCheckError } = await supabase
+      const { data: userExists } = await supabase
         .from('users')
         .select('id')
         .eq('id', userData.user.id)
