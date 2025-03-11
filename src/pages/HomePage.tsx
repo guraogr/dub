@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import InviteModal from '../components/InviteModal';
 import BottomNavigation from '../components/BottomNavigation';
 
@@ -36,7 +37,11 @@ const HomePage = () => {
   const [availabilities, setAvailabilities] = useState<any[]>([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+  
+
+
 
   // ユーザーの認証状態を確認
   useEffect(() => {
@@ -52,6 +57,44 @@ const HomePage = () => {
     
     checkUser();
   }, [navigate]);
+  
+  // 日付一覧を生成する関数
+  const generateDateList = () => {
+    const dates = [];
+    const today = new Date();
+    
+    // 今日から2週間後までの日付を生成
+    for (let i = 0; i < 14; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      // 年月日を個別に取得して文字列に変換（タイムゾーンの影響を受けない）
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      
+      // YYYY-MM-DD形式の文字列を作成（これをデータベースのクエリに使用）
+      const formattedDate = `${year}-${month}-${day}`;
+      
+      console.log(`${date.getDate()}日の表示日付:`, formattedDate);
+      
+      const dateObj = {
+        date: date,
+        formattedDate: formattedDate, // この値がデータベースの日付と一致するようにする
+        day: date.getDate(),
+        month: date.getMonth() + 1,
+        weekday: new Intl.DateTimeFormat('ja-JP', { weekday: 'short' }).format(date)
+      };
+      
+      dates.push(dateObj);
+    }
+    
+    return dates;
+  };
+  
+// 日付リストと選択された日付のステート
+const [dateList, setDateList] = useState(generateDateList());
+const [selectedDate, setSelectedDate] = useState(dateList[0]?.formattedDate || '');
 
   // 予定データを取得するuseEffect
   useEffect(() => {
@@ -59,92 +102,104 @@ const HomePage = () => {
       if (!user) return;
       
       try {
+        setLoading(true);
+        
         // 現在の日時を取得
         const now = new Date();
-        
-        // YYYY-MM-DD形式の今日の日付
         const todayStr = now.toISOString().split('T')[0];
-        console.log('今日の日付:', todayStr);
-        
-        // 現在の時間（HH:MM形式）
         const currentHour = now.getHours().toString().padStart(2, '0');
         const currentMinute = now.getMinutes().toString().padStart(2, '0');
         const currentTimeStr = `${currentHour}:${currentMinute}`;
+        
+        console.log('今日の日付:', todayStr);
         console.log('現在の時間:', currentTimeStr);
         
-        // このユーザーが関わる全ての招待状態を取得
-        const { data: userInvitations, error: invitationsError } = await supabase
-          .from('invitations')
-          .select('id, status, availability_id, sender_id, recipient_id')
-          .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`);
-          
-        if (invitationsError) {
-          console.error('招待状態の取得エラー:', invitationsError);
-        }
+        // 選択された日付の予定を取得
+        const targetDate = selectedDate || todayStr;
         
-        // 承認または拒否された可用性IDのリストを作成
-        const respondedAvailabilityIds = userInvitations
-          ?.filter(inv => inv.status === 'accepted' || inv.status === 'rejected')
-          .map(inv => inv.availability_id) || [];
-          
-        console.log('承認・拒否済みの可用性ID:', respondedAvailabilityIds);
-        
-        // 予定を取得（まずは日付時間で絞り込み）
+        // 予定を取得
         const { data, error } = await supabase
           .from('availabilities')
           .select(`
             *,
-            user:user_id(id, name, avatar_url)
+            user:user_id(id, name, avatar_url),
+            invitations(id, status)
           `)
-          .gte('date', todayStr)
-          .order('date', { ascending: true })
+          .eq('date', targetDate)
           .order('start_time', { ascending: true });
           
-        if (error) {
-          console.error('予定の取得エラー:', error);
-          throw error;
-        }
+        if (error) throw error;
         
-        // フィルタリング:
-        // 1. 自分の予定は除外
-        // 2. 承認・拒否済みの予定は除外
-        // 3. 時間が過ぎた予定は除外
-        const filteredAvailabilities = data?.filter(item => {
-          // 自分の予定は除外
+        console.log('取得した予定データ:', data);
+        
+        // 完全に新しいフィルタリング実装
+        const filteredData = data?.filter(item => {
+          console.log('フィルタリング対象:', item.id, item.date, item.start_time, item.end_time);
+          
+          // 自分の予定は表示しない
           if (item.user_id === user.id) {
+            console.log('自分の予定なので非表示:', item.id);
             return false;
           }
           
-          // 承認・拒否済みの予定は除外
-          if (respondedAvailabilityIds.includes(item.id)) {
-            console.log('承認・拒否済みのため非表示:', item);
+          // 承諾済み招待の確認
+          const hasAcceptedInvitation = item.invitations && 
+            item.invitations.some((inv: any) => inv.status === 'accepted');
+          
+          if (hasAcceptedInvitation) {
+            console.log('承諾済みのため除外:', item.id);
             return false;
           }
           
-          // 日付が今日より後なら表示
-          if (item.date > todayStr) return true;
-          
-          // 日付が今日と同じ場合は時間をチェック
-          if (item.date === todayStr) {
-            // 開始時間が現在時刻より後なら表示
-            return item.start_time > currentTimeStr;
+          // 特別なケース：00:00-23:59の終日予定は常に表示
+          if ((item.start_time === '00:00' || item.start_time === '00:00:00') && 
+              (item.end_time === '23:59' || item.end_time === '23:59:00')) {
+            console.log('終日予定なので表示:', item.id);
+            return true;
           }
           
+          // 選択された日付が今日より後の場合は時間に関係なく表示
+          if (targetDate > todayStr) {
+            console.log('未来の日付なので表示:', item.id);
+            return true;
+          }
+          
+          // 選択された日付が今日の場合、開始時間が現在時刻より後のみ表示
+          if (targetDate === todayStr) {
+            // 時間部分だけを抽出して比較（秒を除く）
+            const startTimeParts = item.start_time.split(':');
+            const startTimeFormatted = `${startTimeParts[0]}:${startTimeParts[1]}`;
+            
+            const currentTimeParts = currentTimeStr.split(':');
+            const currentTimeFormatted = `${currentTimeParts[0]}:${currentTimeParts[1]}`;
+            
+            const isAfterCurrentTime = startTimeFormatted > currentTimeFormatted;
+            console.log('時間比較:', startTimeFormatted, '>', currentTimeFormatted, '=', isAfterCurrentTime);
+            
+            return isAfterCurrentTime;
+          }
+          
+          console.log('表示しない予定:', item.id);
           return false;
         }) || [];
         
-        console.log('フィルタリング後の予定:', filteredAvailabilities);
-        setAvailabilities(filteredAvailabilities);
+        console.log('フィルタリング後の予定:', filteredData);
+        setAvailabilities(filteredData);
         
       } catch (error) {
         console.error('予定の取得に失敗しました', error);
+      } finally {
+        setLoading(false);
       }
     };
     
     if (user) {
       fetchAvailabilities();
     }
-  }, [user]);
+  }, [user,selectedDate]);
+  
+  
+
 
   // カレンダーの日付を取得
   const getDaysInWeek = () => {
@@ -187,55 +242,60 @@ const HomePage = () => {
   };
 
   // 誘いを送信
+  // handleSendInvite関数内で、成功時にトーストを表示
   const handleSendInvite = async () => {
-    if (!selectedUser) return;
-    
     try {
       setLoading(true);
       
-      // 誘いをinvitationsテーブルに登録
+      // 現在のユーザー情報を取得
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData || !userData.user) {
+        throw new Error('ユーザーが見つかりません');
+      }
+  
+      // 誘いを登録してIDを取得
       const { data: invitationData, error: invitationError } = await supabase
         .from('invitations')
-        .insert([
-          {
-            sender_id: user.id,
-            recipient_id: selectedUser.id,
-            availability_id: selectedUser.availabilityId,
-            status: 'pending'
-          }
-        ])
-        .select();
+        .insert({
+          sender_id: userData.user.id,
+          recipient_id: selectedUser.id,
+          availability_id: selectedUser.availabilityId,
+          status: 'pending'
+        })
+        .select(); // .select()を追加してデータを取得
         
       if (invitationError) throw invitationError;
       
-      // メッセージもmessagesテーブルに登録
-      const { data: messageData, error: messageError } = await supabase
-        .from('messages')
-        .insert([
-          {
-            sender_id: user.id,
-            recipient_id: selectedUser.id,
-            invitation_id: invitationData[0].id,
-            type: 'invitation',
-            content: `「${selectedUser.time} ${selectedUser.comment}」の募集に遊びの誘いが届きました。`,
-            is_read: false
-          }
-        ])
-        .select();
-        
-      if (messageError) {
-        console.error('メッセージ登録エラー:', messageError);
-        throw messageError;
+      if (!invitationData || invitationData.length === 0) {
+        throw new Error('招待データの取得に失敗しました');
       }
-
-      console.log('登録されたメッセージ:', messageData);
+  
+      // メッセージも登録
+      const { error: msgError } = await supabase
+        .from('messages')
+        .insert({
+          sender_id: userData.user.id,
+          recipient_id: selectedUser.id,
+          invitation_id: invitationData[0].id, // これで正しく動作するはず
+          type: 'invitation',
+          content: `「${selectedUser.time} ${selectedUser.comment}」の募集に遊びの誘いが届きました。`,
+          is_read: false
+        });
+        
+      if (msgError) throw msgError;
+  
+      // モーダルを閉じる
+      setModalOpen(false);
       
-      setShowInviteModal(false);
-      alert('遊びの誘いを送信しました！');
-      
+      // トースト通知を表示
+      toast.success(`${selectedUser.name}さんを遊びに誘いました。`, {
+        duration: 3000,
+        style: { background: '#4ade80' } // 任意のスタイル
+      });
+  
     } catch (error: any) {
       console.error('誘いの送信に失敗しました', error);
-      alert(`誘いの送信に失敗しました: ${error.message}`);
+      toast.error(`誘いの送信に失敗しました: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -258,21 +318,26 @@ const HomePage = () => {
           プロフィール設定
         </button>
       </div>
-      {/* カレンダー表示 */}
-      <div className="mb-8">
-        <div className="flex mb-4">
-          {getDaysInWeek().map((date, index) => (
-            <div 
-              key={index} 
-              className={`flex-1 text-center p-2 rounded-lg ${
-                isToday(date) ? 'bg-yellow-400 text-black font-bold' : ''
-              }`}
-            >
-              <div className="text-lg">{formatDate(date)}</div>
-              <div className="text-sm text-gray-500">{formatDay(date)}</div>
-            </div>
+      {/* 日付選択部分 */}
+      <div className="flex overflow-x-auto space-x-2 mb-4 pb-2">
+        {dateList.map((date, index) => (
+          <button
+            key={date.formattedDate}
+            className={`flex-none p-2 min-w-16 text-center rounded-lg ${
+              selectedDate === date.formattedDate
+                ? 'bg-yellow-400 text-black font-bold'
+                : 'bg-white text-gray-700'
+            }`}
+            onClick={() => {
+              console.log(`${date.day}日ボタンをクリック: ${date.formattedDate}`);
+              setSelectedDate(date.formattedDate);
+            }}
+          >
+            <div className="text-sm">{index === 0 ? '今日' : date.weekday}</div>
+            <div className="text-lg">{date.day}</div>
+            <div className="text-xs">{date.month}月</div>
+          </button>
           ))}
-        </div>
       </div>
       
       {/* 予定一覧 */}

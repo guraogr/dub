@@ -1,3 +1,4 @@
+import { Toaster } from 'sonner';
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
@@ -9,6 +10,7 @@ import CreateAvailabilityPage from './pages/CreateAvailabilityPage';
 import AppointmentCompletedPage from './pages/AppointmentCompletedPage';
 import NotificationModal from './components/NotificationModal'; 
 import ProfilePage from './pages/ProfilePage';
+import MyAvailabilitiesPage from './pages/MyAvailabilitiesPage';
 
 
 function App() {
@@ -126,6 +128,9 @@ useEffect(() => {
 
   return (
     <Router>
+       {/* Toasterコンポーネントを追加 */}
+       <Toaster position="top-center" richColors />
+      
       {/* 通知モーダル */}
       {showNotification && notification && (
         <NotificationModal
@@ -135,14 +140,15 @@ useEffect(() => {
       )}
       
       <Routes>
-      <Route path="/login" element={!session ? <LoginPage /> : <Navigate to="/" />} />
-      <Route path="/register" element={!session ? <RegisterPage /> : <Navigate to="/" />} />
-      <Route path="/create-availability" element={session ? <CreateAvailabilityPage /> : <Navigate to="/login" />} />
-      <Route path="/messages" element={session ? <MessagesPage /> : <Navigate to="/login" />} />
-      <Route path="/appointment-completed/:id" element={session ? <AppointmentCompletedPage /> : <Navigate to="/login" />} />
-      <Route path="/profile" element={session ? <ProfilePage /> : <Navigate to="/login" />} /> {/* このルートが必要 */}
-      <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
-    </Routes>
+        <Route path="/login" element={!session ? <LoginPage /> : <Navigate to="/" />} />
+        <Route path="/register" element={!session ? <RegisterPage /> : <Navigate to="/" />} />
+        <Route path="/messages" element={session ? <MessagesPage /> : <Navigate to="/login" />} />
+        <Route path="/appointmentcompleted/:id" element={session ? <AppointmentCompletedPage /> : <Navigate to="/login" />} />
+        <Route path="/profile" element={session ? <ProfilePage /> : <Navigate to="/login" />} />
+        <Route path="/myavailabilities" element={session ? <MyAvailabilitiesPage /> : <Navigate to="/login" />} /> {/* 新しいルート */}
+        <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
+        <Route path="/create-availability" element={session ? <CreateAvailabilityPage /> : <Navigate to="/login" />} />
+      </Routes>
     </Router>
   );
 }
