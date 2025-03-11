@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
+import BottomNavigation from '../components/BottomNavigation';
 
 const ProfilePage = () => {
   const [name, setName] = useState('');
@@ -94,20 +95,15 @@ const ProfilePage = () => {
       navigate('/');
       
     } catch (error: any) {
-      console.error('更新エラー:', error);
+      console.error('プロフィール更新エラー:', error);
       setError(error.message || 'プロフィールの更新に失敗しました');
     } finally {
       setLoading(false);
     }
   };
 
-  // 画像プレビュー用URL
-  const avatarPreview = avatarFile 
-    ? URL.createObjectURL(avatarFile) 
-    : avatarUrl || '';
-
   return (
-    <div className="max-w-md mx-auto p-4">
+    <div className="max-w-md mx-auto p-4 pb-20">
       <h1 className="text-2xl font-bold mb-6">プロフィール設定</h1>
       
       {error && (
@@ -120,9 +116,9 @@ const ProfilePage = () => {
         {/* プロフィール画像 */}
         <div className="flex flex-col items-center">
           <div className="w-24 h-24 bg-gray-300 rounded-full mb-2 overflow-hidden">
-            {avatarPreview && (
+            {avatarUrl && (
               <img 
-                src={avatarPreview} 
+                src={avatarUrl} 
                 alt="プロフィール" 
                 className="w-full h-full object-cover"
               />
@@ -134,7 +130,7 @@ const ProfilePage = () => {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => {
+              onChange={e => {
                 if (e.target.files && e.target.files[0]) {
                   setAvatarFile(e.target.files[0]);
                 }
@@ -152,7 +148,7 @@ const ProfilePage = () => {
             id="name"
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={e => setName(e.target.value)}
             required
             className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
@@ -179,19 +175,22 @@ const ProfilePage = () => {
           </button>
         </div>
       </form>
-      {/* ProfilePage.tsxのフォームの下に追加 */}
-        <div className="mt-8 border-t pt-6">
+      
+      {/* ログアウトボタン */}
+      <div className="mt-8 border-t pt-6">
         <button
-            type="button"
-            onClick={async () => {
+          type="button"
+          onClick={async () => {
             await supabase.auth.signOut();
             navigate('/login');
-            }}
-            className="w-full px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          }}
+          className="w-full px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
         >
-            ログアウト
+          ログアウト
         </button>
-        </div>
+      </div>
+      
+      <BottomNavigation />
     </div>
   );
 };

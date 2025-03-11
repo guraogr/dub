@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import BottomNavigation from '../components/BottomNavigation';
 
 // ResponseModalコンポーネント
 interface ResponseModalProps {
@@ -114,15 +115,37 @@ const MessagesPage = () => {
     try {
       setLoading(true);
       console.log('Fetching messages for user:', userId, 'tab:', activeTab);
+  
+      // まず、このユーザーが関わる全ての招待状態を取得
+      console.log('関連する招待の状態を確認中...');
+      const { data: allInvitations, error: invitationsError } = await supabase
+        .from('invitations')
+        .select('id, status, availability_id')
+        .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`);
+        
+      if (invitationsError) {
+        console.error('招待状態の取得エラー:', invitationsError);
+      } else {
+        console.log('取得した招待状態:', allInvitations);
+      }
       
+      // 承認または拒否された招待IDのリストを作成
+      const respondedInvitationIds = allInvitations
+        ?.filter(inv => inv.status === 'accepted' || inv.status === 'rejected')
+        .map(inv => inv.id) || [];
+        
+      console.log('承認・拒否済みの招待ID:', respondedInvitationIds);
+  
       if (activeTab === 'inbox') {
-        // 受信メッセージを取得（自分宛のみ）
+        // 受信メッセージの処理
         const { data, error } = await supabase
           .from('messages')
           .select(`
             *,
             sender:sender_id(*),
-            invitation:invitation_id(*)
+            invitation:invitation_id(*,
+              availability:availability_id(*)
+            )
           `)
           .eq('recipient_id', userId)
           .order('created_at', { ascending: false });
@@ -131,12 +154,40 @@ const MessagesPage = () => {
         console.log('受信メッセージ (全て):', data);
         
         if (data) {
-          // 応答済みの誘いメッセージは除外（「スカウト送信済み」の受信箱での表示を削除）
           const filteredData = data.filter(message => {
-            // 誘いタイプのメッセージで、招待状態が pending 以外（承諾・拒否済み）のものを除外
-            if (message.type === 'invitation' && message.invitation?.status !== 'pending') {
+            // 誘いタイプで、対応する招待IDが応答済みリストにある場合は非表示
+            if (message.type === 'invitation' && 
+                message.invitation_id && 
+                respondedInvitationIds.includes(message.invitation_id)) {
+              console.log('応答済みのため非表示:', message);
               return false;
             }
+            
+            // 日時によるフィルタリング
+            const availability = message.invitation?.availability;
+            if (availability) {
+              const availDate = new Date(availability.date);
+              availDate.setHours(0, 0, 0, 0);
+              
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              
+              if (availDate < today) {
+                console.log('過去の日付のため非表示:', availability.date);
+                return false;
+              }
+              
+              if (availDate.getTime() === today.getTime()) {
+                const now = new Date();
+                const [startHour, startMinute] = availability.start_time.split(':').map(Number);
+                
+                if (now.getHours() > startHour || (now.getHours() === startHour && now.getMinutes() > startMinute)) {
+                  console.log('過去の時間のため非表示:', availability.start_time);
+                  return false;
+                }
+              }
+            }
+            
             return true;
           });
           
@@ -147,13 +198,15 @@ const MessagesPage = () => {
         }
       } 
       else {
-        // 送信メッセージを取得（自分が送信したもののみ）
+        // 送信メッセージの処理（同様の修正）
         const { data, error } = await supabase
           .from('messages')
           .select(`
             *,
             recipient:recipient_id(*),
-            invitation:invitation_id(*)
+            invitation:invitation_id(*,
+              availability:availability_id(*)
+            )
           `)
           .eq('sender_id', userId)
           .order('created_at', { ascending: false });
@@ -162,12 +215,36 @@ const MessagesPage = () => {
         console.log('送信メッセージ (全て):', data);
         
         if (data) {
-          // 応答済みの「遊びの誘いが届きました」は送信箱から削除
           const filteredData = data.filter(message => {
-            // 誘いタイプのメッセージで、招待状態が pending 以外（承諾・拒否済み）のものを除外
-            if (message.type === 'invitation' && message.invitation?.status !== 'pending') {
+            // 誘いタイプで、対応する招待IDが応答済みリストにある場合は非表示
+            if (message.type === 'invitation' && 
+                message.invitation_id && 
+                respondedInvitationIds.includes(message.invitation_id)) {
+              console.log('応答済みのため非表示:', message);
               return false;
             }
+            
+            // 日時によるフィルタリング（同上）
+            const availability = message.invitation?.availability;
+            if (availability) {
+              const availDate = new Date(availability.date);
+              availDate.setHours(0, 0, 0, 0);
+              
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              
+              if (availDate < today) return false;
+              
+              if (availDate.getTime() === today.getTime()) {
+                const now = new Date();
+                const [startHour, startMinute] = availability.start_time.split(':').map(Number);
+                
+                if (now.getHours() > startHour || (now.getHours() === startHour && now.getMinutes() > startMinute)) {
+                  return false;
+                }
+              }
+            }
+            
             return true;
           });
           
@@ -183,6 +260,23 @@ const MessagesPage = () => {
       setLoading(false);
     }
   };
+
+  // 日付と時間のフォーマット関数を追加
+const formatAvailabilityDate = (availability: any) => {
+    if (!availability) return '';
+    
+    const date = new Date(availability.date);
+    const formattedDate = date.toLocaleDateString('ja-JP', {
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short'
+    });
+    
+    const startTime = availability.start_time?.slice(0, 5) || '';
+    const endTime = availability.end_time?.slice(0, 5) || '';
+    
+    return `${formattedDate} ${startTime}～${endTime}`;
+};
 
   // 誘いへの応答処理
   const handleResponseToInvitation = async (messageId: string, invitationId: string, status: 'accepted' | 'rejected') => {
@@ -283,12 +377,13 @@ const MessagesPage = () => {
       // モーダルを閉じる
       setModalOpen(false);
       
-      // 誘いを承諾/拒否した場合のメッセージ
+      // 誘いを承諾した場合、完了画面に遷移
       if (status === 'accepted') {
-        alert('誘いを承諾しました！');
+        // 承諾画面に遷移
+        navigate(`/appointment-completed/${invitationId}`);
       } else {
         alert('誘いを拒否しました');
-      }
+  }
       
       // メッセージを再取得
       if (user) {
@@ -420,44 +515,56 @@ const MessagesPage = () => {
         <div className="space-y-4 mb-20">
           {messages.map(message => (
             <div
-              key={message.id}
-              className={`p-4 rounded-lg shadow cursor-pointer ${
+                key={message.id}
+                className={`p-4 rounded-lg shadow cursor-pointer ${
                 activeTab === 'inbox' && !message.is_read 
-                  ? 'bg-blue-50 border-l-4 border-blue-500' 
-                  : 'bg-white'
-              }`}
-              onClick={() => handleMessageClick(message)}
+                    ? 'bg-blue-50 border-l-4 border-blue-500' 
+                    : 'bg-white'
+                }`}
+                onClick={() => handleMessageClick(message)}
             >
-              <div className="flex items-center">
+                <div className="flex items-center">
                 <div className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full mr-3 text-lg">
-                  {getMessageIcon(message.type)}
+                    {getMessageIcon(message.type)}
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center">
+                    {/* 相手の名前と既読マーク */}
+                    <div className="flex items-center">
                     <div className="font-medium">
-                      {activeTab === 'inbox' 
+                        {activeTab === 'inbox' 
                         ? message.sender?.name || '送信者' 
                         : message.recipient?.name || '受信者'}
                     </div>
                     {activeTab === 'inbox' && !message.is_read && (
-                      <span className="ml-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                        <span className="ml-2 w-2 h-2 bg-red-500 rounded-full"></span>
                     )}
-                  </div>
-                  <div className="text-sm text-gray-600">
+                    </div>
+                    
+                    {/* メッセージ内容 */}
+                    <div className="text-sm text-gray-600">
                     {getStatusText(message)}
-                  </div>
+                    </div>
+                    
+                    {/* 遊ぶ予定の時間があれば表示 */}
+                    {message.invitation?.availability && (
+                    <div className="text-xs text-gray-500 mt-1">
+                        遊ぶ予定: {formatAvailabilityDate(message.invitation.availability)}
+                    </div>
+                    )}
                 </div>
+                
+                {/* スカウトが届いた時間 */}
                 <div className="text-xs text-gray-500">
-                  {new Date(message.created_at).toLocaleString('ja-JP', {
+                    {new Date(message.created_at).toLocaleString('ja-JP', {
                     month: 'numeric',
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
-                  })}
+                    })}
                 </div>
-              </div>
+                </div>
             </div>
-          ))}
+            ))}
         </div>
       )}
       
@@ -471,28 +578,7 @@ const MessagesPage = () => {
       />
       
       {/* 下部ナビゲーション */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-4">
-        <button 
-          className="text-center"
-          onClick={() => navigate('/')}
-        >
-          <div className="text-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div className="text-xs mt-1">遊びに誘う</div>
-        </button>
-        
-        <button className="text-center">
-          <div className="text-blue-500">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div className="text-xs mt-1 font-medium text-blue-500">スカウトを見る</div>
-        </button>
-      </div>
+      <BottomNavigation />
     </div>
   );
 };

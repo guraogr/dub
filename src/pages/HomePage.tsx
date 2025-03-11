@@ -2,6 +2,32 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import InviteModal from '../components/InviteModal';
+import BottomNavigation from '../components/BottomNavigation';
+
+interface Invitation {
+  id: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  sender_id: string;
+  recipient_id: string;
+  availability_id: string;
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  avatar_url: string;
+}
+
+interface Availability {
+  id: string;
+  user_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  comment: string;
+  user: UserProfile;
+  invitations?: Invitation[];
+}
 
 const HomePage = () => {
   const [user, setUser] = useState<any>(null);
@@ -33,28 +59,83 @@ const HomePage = () => {
       if (!user) return;
       
       try {
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD形式
+        // 現在の日時を取得
+        const now = new Date();
         
-        // 今日以降の予定を取得
+        // YYYY-MM-DD形式の今日の日付
+        const todayStr = now.toISOString().split('T')[0];
+        console.log('今日の日付:', todayStr);
+        
+        // 現在の時間（HH:MM形式）
+        const currentHour = now.getHours().toString().padStart(2, '0');
+        const currentMinute = now.getMinutes().toString().padStart(2, '0');
+        const currentTimeStr = `${currentHour}:${currentMinute}`;
+        console.log('現在の時間:', currentTimeStr);
+        
+        // このユーザーが関わる全ての招待状態を取得
+        const { data: userInvitations, error: invitationsError } = await supabase
+          .from('invitations')
+          .select('id, status, availability_id, sender_id, recipient_id')
+          .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`);
+          
+        if (invitationsError) {
+          console.error('招待状態の取得エラー:', invitationsError);
+        }
+        
+        // 承認または拒否された可用性IDのリストを作成
+        const respondedAvailabilityIds = userInvitations
+          ?.filter(inv => inv.status === 'accepted' || inv.status === 'rejected')
+          .map(inv => inv.availability_id) || [];
+          
+        console.log('承認・拒否済みの可用性ID:', respondedAvailabilityIds);
+        
+        // 予定を取得（まずは日付時間で絞り込み）
         const { data, error } = await supabase
           .from('availabilities')
           .select(`
             *,
             user:user_id(id, name, avatar_url)
           `)
-          .gte('date', formattedDate) // 今日以降の日付
+          .gte('date', todayStr)
           .order('date', { ascending: true })
           .order('start_time', { ascending: true });
           
-        if (error) throw error;
+        if (error) {
+          console.error('予定の取得エラー:', error);
+          throw error;
+        }
         
-        // 全ての予定を表示（テスト段階では自分の予定も表示）
-        setAvailabilities(data || []);
+        // フィルタリング:
+        // 1. 自分の予定は除外
+        // 2. 承認・拒否済みの予定は除外
+        // 3. 時間が過ぎた予定は除外
+        const filteredAvailabilities = data?.filter(item => {
+          // 自分の予定は除外
+          if (item.user_id === user.id) {
+            return false;
+          }
+          
+          // 承認・拒否済みの予定は除外
+          if (respondedAvailabilityIds.includes(item.id)) {
+            console.log('承認・拒否済みのため非表示:', item);
+            return false;
+          }
+          
+          // 日付が今日より後なら表示
+          if (item.date > todayStr) return true;
+          
+          // 日付が今日と同じ場合は時間をチェック
+          if (item.date === todayStr) {
+            // 開始時間が現在時刻より後なら表示
+            return item.start_time > currentTimeStr;
+          }
+          
+          return false;
+        }) || [];
         
-        // 本番環境では以下のように自分以外の予定のみ表示
-        // const othersAvailabilities = data?.filter(item => item.user_id !== user.id) || [];
-        // setAvailabilities(othersAvailabilities);
+        console.log('フィルタリング後の予定:', filteredAvailabilities);
+        setAvailabilities(filteredAvailabilities);
+        
       } catch (error) {
         console.error('予定の取得に失敗しました', error);
       }
@@ -196,42 +277,44 @@ const HomePage = () => {
       
       {/* 予定一覧 */}
       <div className="space-y-4">
-  {availabilities.length === 0 ? (
-    <div className="text-center py-8 text-gray-500">予定が見つかりません</div>
-  ) : (
-    availabilities.map((availability) => (
-      <div 
-        key={availability.id}
-        className="flex items-center p-4 bg-white rounded-lg shadow cursor-pointer hover:bg-gray-50"
-        onClick={() => handleUserSelect({
-          id: availability.user.id,
-          name: availability.user.name,
-          comment: availability.comment,
-          time: `${availability.start_time.slice(0, 5)}-${availability.end_time.slice(0, 5)}`,
-          availabilityId: availability.id
-        })}
-      >
-        <div className="w-12 h-12 bg-gray-300 rounded-full mr-4">
-          {availability.user.avatar_url && (
-            <img 
-              src={availability.user.avatar_url} 
-              alt={availability.user.name} 
-              className="w-full h-full object-cover rounded-full"
-            />
-          )}
-        </div>
-        <div>
-          <div className="font-medium">{availability.user.name}</div>
-          <div className="text-sm text-gray-500">{availability.comment}</div>
-        </div>
-        <div className="ml-auto text-right">
-          <div>{`${availability.start_time.slice(0, 5)}-${availability.end_time.slice(0, 5)}`}</div>
-          <div className="text-xs text-gray-500">{new Date(availability.date).toLocaleDateString('ja-JP')}</div>
-        </div>
+        {availabilities.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">予定が見つかりません</div>
+        ) : (
+          availabilities.map(availability => (
+            <div 
+              key={availability.id}
+              className="flex items-center p-4 bg-white rounded-lg shadow cursor-pointer hover:bg-gray-50"
+              onClick={() => handleUserSelect({
+                id: availability.user?.id || availability.user_id,
+                name: availability.user?.name || '名前なし',
+                comment: availability.comment || '',
+                time: `${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`,
+                availabilityId: availability.id
+              })}
+            >
+              <div className="w-12 h-12 bg-gray-300 rounded-full mr-4">
+                {availability.user?.avatar_url && (
+                  <img 
+                    src={availability.user.avatar_url} 
+                    alt={availability.user.name} 
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                )}
+              </div>
+              <div>
+                <div className="font-medium">{availability.user?.name || '名前なし'}</div>
+                <div className="text-sm text-gray-500">{availability.comment || ''}</div>
+              </div>
+              <div className="ml-auto text-right">
+                <div>{`${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`}</div>
+                <div className="text-xs text-gray-500">
+                  {availability.date && new Date(availability.date).toLocaleDateString('ja-JP')}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
-    ))
-  )}
-</div>
       
       {/* 右下の予定登録FABボタン */}
       <div className="fixed right-4 bottom-20">
@@ -246,31 +329,7 @@ const HomePage = () => {
       </div>
       
       {/* 下部ナビゲーション */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-4">
-        <button 
-          className="text-center"
-          onClick={() => navigate('/')}
-        >
-          <div className="text-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div className="text-xs mt-1">遊びに誘う</div>
-        </button>
-        
-        <button 
-          className="text-center"
-          onClick={() => navigate('/messages')}
-        >
-          <div className="text-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div className="text-xs mt-1">スカウトを見る</div>
-        </button>
-      </div>
+      <BottomNavigation />
       
       {/* 誘いモーダル */}
       {selectedUser && (
