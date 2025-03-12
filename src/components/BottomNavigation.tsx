@@ -1,26 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { User } from '../types';
 
-// 型定義
-interface Invitation {
-  id: string;
-  status: string;
-}
-
-interface Message {
-  id: string;
-  invitation_id: string;
-  is_read: boolean;
+// ナビゲーションアイテムの型定義
+interface NavItem {
+  path: string;
+  label: string;
+  icon: React.ReactNode;
 }
 
 const BottomNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
-  // ユーザー情報を取得
+  // ユーザー情報の取得
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -38,47 +34,18 @@ const BottomNavigation = () => {
     
     const fetchUnreadCount = async () => {
       try {
-        // 未読メッセージを取得
-        const { data, error } = await supabase
+        // シンプルに未読メッセージの数を数える
+        const { count, error } = await supabase
           .from('messages')
-          .select(`
-            id,
-            is_read,
-            invitation_id
-          `)
+          .select('*', { count: 'exact' })
           .eq('recipient_id', user.id)
           .eq('type', 'invitation')
           .eq('is_read', false);
           
         if (error) throw error;
         
-        console.log('未読メッセージデータ:', data);
+        setUnreadCount(count || 0);
         
-        // 別のクエリで招待の状態を取得
-        if (data && data.length > 0) {
-          const invitationIds = data
-            .map(msg => msg.invitation_id)
-            .filter(id => id !== null);
-          
-          if (invitationIds.length > 0) {
-            const { data: invitationsData, error: invitationsError } = await supabase
-              .from('invitations')
-              .select('id, status')
-              .in('id', invitationIds);
-              
-            if (invitationsError) throw invitationsError;
-            
-            console.log('招待データ:', invitationsData);
-            
-            // pendingステータスの招待のみをカウント
-            const pendingInvitations = invitationsData.filter(inv => inv.status === 'pending');
-            setUnreadCount(pendingInvitations.length);
-          } else {
-            setUnreadCount(0);
-          }
-        } else {
-          setUnreadCount(0);
-        }
       } catch (error) {
         console.error('未読数の取得に失敗しました', error);
       }
@@ -88,9 +55,9 @@ const BottomNavigation = () => {
     
     // リアルタイムサブスクリプションを設定
     const channel = supabase
-      .channel('unread-messages')
+      .channel('public:messages')
       .on('postgres_changes', {
-        event: '*',
+        event: 'INSERT',
         schema: 'public',
         table: 'messages',
         filter: `recipient_id=eq.${user.id}`,
@@ -105,48 +72,81 @@ const BottomNavigation = () => {
     };
   }, [user]);
 
+  // ナビゲーションアイテムの定義
+  const navItems: NavItem[] = [
+    {
+      path: '/',
+      label: '遊びを探す',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      )
+    },
+    {
+      path: '/myavailabilities',
+      label: 'マイ予定',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      )
+    },
+    {
+      path: '/messages',
+      label: 'スカウト',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+          <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+      )
+    },
+    {
+      path: '/profile',
+      label: 'プロフィール',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      )
+    }
+  ];
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-4">
-      <button 
-        className={`text-center ${location.pathname === '/' ? 'text-blue-500' : 'text-gray-600'}`}
-        onClick={() => navigate('/')}
-      >
-        <div>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div className="text-xs mt-1">遊びを探す</div>
-      </button>
-      
-      <button 
-        className={`text-center ${location.pathname === '/myavailabilities' ? 'text-blue-500' : 'text-gray-600'}`}
-        onClick={() => navigate('/myavailabilities')}
-      >
-        <div>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-        </div>
-        <div className="text-xs mt-1">マイ予定</div>
-      </button>
-      
-      <button 
-        className={`text-center relative ${location.pathname === '/messages' ? 'text-blue-500' : 'text-gray-600'}`}
-        onClick={() => navigate('/messages')}
-      >
-        <div>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v10a2 2 0 002 2z" />
-          </svg>
-          {unreadCount > 0 && 
-            <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-              {unreadCount}
-            </span>
-          }
-        </div>
-        <div className="text-xs mt-1">スカウト</div>
-      </button>
+    <div className="fixed bottom-0 left-0 right-0 flex justify-center">
+      <div className="w-full max-w-md bg-white border-t border-gray-300 flex justify-between p-4 pb-safe">
+        {navItems.map((item, index) => (
+          <div key={index} className="text-center w-1/4">
+            <button 
+              className={`flex flex-col items-center w-full ${location.pathname === item.path ? 'text-black' : 'text-gray-500'}`}
+              onClick={() => navigate(item.path)}
+            >
+              {item.path === '/messages' ? (
+                <div className="relative">
+                  {item.icon}
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                item.icon
+              )}
+              <div className="text-xs mt-1">{item.label}</div>
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

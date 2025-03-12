@@ -104,8 +104,6 @@ const ProfilePage = () => {
 
   return (
     <div className="max-w-md mx-auto p-4 pb-20">
-      <h1 className="text-2xl font-bold mb-6">プロフィール設定</h1>
-      
       {error && (
         <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded">
           {error}

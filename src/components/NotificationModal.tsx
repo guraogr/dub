@@ -1,170 +1,139 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { NotificationType } from '../types';
+import { formatDate, formatTime } from '../utils/dateUtils';
 
 interface NotificationModalProps {
-  notification: {
-    id: string;
-    invitation_id: string;
-    sender: {
-      name: string;
-      avatar_url?: string;
-    };
-    availability: {
-      date: string;
-      start_time: string;
-      end_time: string;
-      comment?: string;
-    };
-    created_at: string;
-  };
+  notification: NotificationType;
   onClose: () => void;
 }
 
 const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onClose }) => {
   const navigate = useNavigate();
   
-  // 日付のフォーマット
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('ja-JP', {
-      month: 'numeric',
-      day: 'numeric',
-      weekday: 'short'
-    });
+  // 日付フォーマット関数は外部ユーティリティからインポート
+  
+  /**
+   * 招待に対する処理を行う共通関数
+   * @param status 更新するステータス ('accepted' または 'rejected')
+   */
+  const handleInvitationResponse = async (status: 'accepted' | 'rejected') => {
+    try {
+      // invitationsテーブルのステータスを更新
+      const { error: invitationError } = await supabase
+        .from('invitations')
+        .update({ status })
+        .eq('id', notification.invitation_id);
+        
+      if (invitationError) {
+        throw new Error(`招待ステータスの更新に失敗: ${invitationError.message}`);
+      }
+      
+      // メッセージを既読に更新
+      const { error: messageError } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('id', notification.id);
+        
+      if (messageError) {
+        throw new Error(`メッセージの既読更新に失敗: ${messageError.message}`);
+      }
+      
+      // 現在のユーザー情報を取得
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        throw new Error(`ユーザー情報の取得エラー: ${userError.message}`);
+      }
+      
+      if (!userData || !userData.user) {
+        throw new Error('ユーザー情報が取得できません');
+      }
+      
+      // 送信者情報を取得
+      const { data: senderData, error: senderError } = await supabase
+        .from('messages')
+        .select('sender_id, recipient_id')
+        .eq('id', notification.id)
+        .single();
+      
+      if (senderError) {
+        throw new Error(`送信者情報の取得エラー: ${senderError.message}`);
+      }
+      
+      if (!senderData) {
+        throw new Error('送信者情報が取得できません');
+      }
+      
+      // ステータスに応じたメッセージタイプと内容を設定
+      const messageType = status === 'accepted' ? 'acceptance' : 'rejection';
+      
+      // 送信者向けメッセージの内容
+      const senderContent = status === 'accepted' 
+        ? '遊びの誘いを承諾しました' 
+        : '遊びの誘いをお断りしました';
+      
+      // 自分向けメッセージの内容
+      const recipientContent = status === 'accepted' 
+        ? '遊びの誘いが承諾されました' 
+        : '相手の予定が埋まってしまいました';
+      
+      // 送信者向けメッセージを作成
+      const { error: sendError } = await supabase
+        .from('messages')
+        .insert({
+          sender_id: userData.user.id,
+          recipient_id: senderData.sender_id,
+          invitation_id: notification.invitation_id,
+          type: messageType,
+          content: senderContent,
+          is_read: false
+        });
+      
+      if (sendError) {
+        throw new Error(`送信者向けメッセージの作成エラー: ${sendError.message}`);
+      }
+        
+      // 自分宛のメッセージも作成
+      const { error: selfError } = await supabase
+        .from('messages')
+        .insert({
+          sender_id: senderData.sender_id,
+          recipient_id: userData.user.id,
+          invitation_id: notification.invitation_id,
+          type: messageType,
+          content: recipientContent,
+          is_read: true
+        });
+      
+      if (selfError) {
+        throw new Error(`自分宛メッセージの作成エラー: ${selfError.message}`);
+      }
+      
+      // モーダルを閉じる
+      onClose();
+      
+      // ステータスに応じた追加処理
+      if (status === 'accepted') {
+        navigate(`/appointment-completed/${notification.invitation_id}`);
+      } else {
+        alert('誘いを拒否しました');
+      }
+      
+    } catch (error: any) {
+      const actionType = status === 'accepted' ? '承諾' : '拒否';
+      console.error(`${actionType}処理に失敗しました`, error);
+      alert(`${actionType}処理に失敗しました: ${error.message}`);
+      onClose();
+    }
   };
   
   // 承諾処理
-  const handleAccept = async () => {
-    try {
-      // invitationsテーブルのステータスを更新
-      const { error: invitationError } = await supabase
-        .from('invitations')
-        .update({ status: 'accepted' })
-        .eq('id', notification.invitation_id);
-        
-      if (invitationError) throw invitationError;
-      
-      // メッセージを既読に更新
-      const { error: messageError } = await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .eq('id', notification.id);
-        
-      if (messageError) throw messageError;
-      
-      // 現在のユーザー情報を取得
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData || !userData.user) throw new Error('ユーザー情報が取得できません');
-      
-      // 送信者に承諾メッセージを送信
-      const { data: senderData } = await supabase
-        .from('messages')
-        .select('sender_id, recipient_id')
-        .eq('id', notification.id)
-        .single();
-        
-      if (senderData) {
-        // 承諾メッセージを作成
-        await supabase
-          .from('messages')
-          .insert({
-            sender_id: userData.user.id,
-            recipient_id: senderData.sender_id,
-            invitation_id: notification.invitation_id,
-            type: 'acceptance',
-            content: '遊びの誘いを承諾しました',
-            is_read: false
-          });
-          
-        // 自分宛のメッセージも作成
-        await supabase
-          .from('messages')
-          .insert({
-            sender_id: senderData.sender_id,
-            recipient_id: userData.user.id,
-            invitation_id: notification.invitation_id,
-            type: 'acceptance',
-            content: '遊びの誘いが承諾されました',
-            is_read: true
-          });
-      }
-      
-      onClose();
-      navigate(`/appointment-completed/${notification.invitation_id}`);
-      
-    } catch (error: any) {
-      console.error('承諾処理に失敗しました', error);
-      alert(`承諾処理に失敗しました: ${error.message}`);
-      onClose();
-    }
-  };
+  const handleAccept = () => handleInvitationResponse('accepted');
   
   // 拒否処理
-  const handleReject = async () => {
-    try {
-      // invitationsテーブルのステータスを更新
-      const { error: invitationError } = await supabase
-        .from('invitations')
-        .update({ status: 'rejected' })
-        .eq('id', notification.invitation_id);
-        
-      if (invitationError) throw invitationError;
-      
-      // メッセージを既読に更新
-      const { error: messageError } = await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .eq('id', notification.id);
-        
-      if (messageError) throw messageError;
-      
-      // 現在のユーザー情報を取得
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData || !userData.user) throw new Error('ユーザー情報が取得できません');
-      
-      // 送信者に拒否メッセージを送信
-      const { data: senderData } = await supabase
-        .from('messages')
-        .select('sender_id, recipient_id')
-        .eq('id', notification.id)
-        .single();
-        
-      if (senderData) {
-        // 拒否メッセージを作成
-        await supabase
-          .from('messages')
-          .insert({
-            sender_id: userData.user.id,
-            recipient_id: senderData.sender_id,
-            invitation_id: notification.invitation_id,
-            type: 'rejection',
-            content: '遊びの誘いをお断りしました',
-            is_read: false
-          });
-          
-        // 自分宛のメッセージも作成
-        await supabase
-          .from('messages')
-          .insert({
-            sender_id: senderData.sender_id,
-            recipient_id: userData.user.id,
-            invitation_id: notification.invitation_id,
-            type: 'rejection',
-            content: '相手の予定が埋まってしまいました',
-            is_read: true
-          });
-      }
-      
-      onClose();
-      alert('誘いを拒否しました');
-      
-    } catch (error: any) {
-      console.error('拒否処理に失敗しました', error);
-      alert(`拒否処理に失敗しました: ${error.message}`);
-      onClose();
-    }
-  };
+  const handleReject = () => handleInvitationResponse('rejected');
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
@@ -173,16 +142,16 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onC
         
         <div className="flex items-center mb-4">
           <div className="w-12 h-12 bg-gray-300 rounded-full mr-4">
-            {notification.sender.avatar_url && (
+            {notification.sender?.avatar_url && (
               <img 
                 src={notification.sender.avatar_url} 
-                alt={notification.sender.name} 
+                alt={notification.sender.name || '送信者'} 
                 className="w-full h-full object-cover rounded-full"
               />
             )}
           </div>
           <div>
-            <div className="font-medium">{notification.sender.name}</div>
+            <div className="font-medium">{notification.sender?.name || '送信者'}</div>
             <div className="text-sm text-gray-600">{notification.availability?.comment || ''}</div>
           </div>
         </div>
@@ -190,7 +159,16 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onC
         <div className="mb-4">
           <div className="text-sm text-gray-500">遊ぶ予定:</div>
           <div className="font-medium">
-            {formatDate(notification.availability.date)} {notification.availability.start_time.slice(0, 5)}～{notification.availability.end_time.slice(0, 5)}
+            {notification.availability ? (
+              <>
+                {notification.availability.date ? formatDate(notification.availability.date) : '日付不明'} 
+                {formatTime(notification.availability.start_time)}
+                ～
+                {formatTime(notification.availability.end_time)}
+              </>
+            ) : (
+              '詳細不明'
+            )}
           </div>
         </div>
         

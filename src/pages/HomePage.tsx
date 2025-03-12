@@ -94,7 +94,13 @@ const HomePage = () => {
   
 // 日付リストと選択された日付のステート
 const [dateList, setDateList] = useState(generateDateList());
-const [selectedDate, setSelectedDate] = useState(dateList[0]?.formattedDate || '');
+// デフォルトでは今日の日付を選択状態にする
+const today = new Date();
+const year = today.getFullYear();
+const month = String(today.getMonth() + 1).padStart(2, '0');
+const day = String(today.getDate()).padStart(2, '0');
+const todayFormatted = `${year}-${month}-${day}`;
+const [selectedDate, setSelectedDate] = useState(todayFormatted);
 
   // 予定データを取得するuseEffect
   useEffect(() => {
@@ -227,13 +233,7 @@ const [selectedDate, setSelectedDate] = useState(dateList[0]?.formattedDate || '
     return days[date.getDay()];
   };
 
-  // 今日かどうかチェック
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.getDate() === today.getDate() && 
-           date.getMonth() === today.getMonth() && 
-           date.getFullYear() === today.getFullYear();
-  };
+  // 今日かどうかチェックの関数は使用しないため削除
 
   // ユーザーを選択して誘いモーダルを表示
   const handleUserSelect = (userData: any) => {
@@ -301,95 +301,104 @@ const [selectedDate, setSelectedDate] = useState(dateList[0]?.formattedDate || '
     }
   };
 
-
-
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">読み込み中...</div>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 pb-20">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">あそびませんか？</h1>
-        <button
-          onClick={() => navigate('/profile')}
-          className="text-sm text-blue-500 hover:underline"
-        >
-          プロフィール設定
-        </button>
-      </div>
-      {/* 日付選択部分 */}
-      <div className="flex overflow-x-auto space-x-2 mb-4 pb-2">
-        {dateList.map((date, index) => (
-          <button
-            key={date.formattedDate}
-            className={`flex-none p-2 min-w-16 text-center rounded-lg ${
-              selectedDate === date.formattedDate
-                ? 'bg-yellow-400 text-black font-bold'
-                : 'bg-white text-gray-700'
-            }`}
-            onClick={() => {
-              console.log(`${date.day}日ボタンをクリック: ${date.formattedDate}`);
-              setSelectedDate(date.formattedDate);
-            }}
-          >
-            <div className="text-sm">{index === 0 ? '今日' : date.weekday}</div>
-            <div className="text-lg">{date.day}</div>
-            <div className="text-xs">{date.month}月</div>
-          </button>
-          ))}
+    <div className="pb-20">
+      {/* 日付選択部分 - 左右にはみ出しても良い */}
+      <div className="w-full mb-4">
+        <div className="overflow-x-auto">
+          <div className="flex space-x-2 pb-2 px-4">
+            {dateList.map((date, index) => {
+              // 曜日の色を設定する関数
+              const getWeekdayColor = (date: Date) => {
+                const day = date.getDay();
+                if (day === 0) return 'text-red-500'; // 日曜日は赤色
+                if (day === 6) return 'text-sky-500'; // 土曜日は青色
+                return 'text-gray-700'; // それ以外はデフォルト色
+              };
+              
+              return (
+                <button
+                  key={date.formattedDate}
+                  className={`flex-none flex flex-col items-center justify-center w-56px h-56px rounded-lg transition duration-150 ease-in-out ${
+                    selectedDate === date.formattedDate ? 'bg-yellow-400 text-black font-bold' : 'bg-white'
+                  } hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500`}
+                  onClick={() => {
+                    console.log(`${date.day}日ボタンをクリック: ${date.formattedDate}`);
+                    setSelectedDate(date.formattedDate);
+                  }}
+                >
+                  <div className={`text-xs font-normal ${index === 0 ? '' : getWeekdayColor(date.date)}`}>
+                    {index === 0 ? '今日' : date.weekday}
+                  </div>
+                  <div className="text-lg font-bold">{date.day}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
       
-      {/* 予定一覧 */}
-      <div className="space-y-4">
-        {availabilities.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">予定が見つかりません</div>
-        ) : (
-          availabilities.map(availability => (
-            <div 
-              key={availability.id}
-              className="flex items-center p-4 bg-white rounded-lg shadow cursor-pointer hover:bg-gray-50"
-              onClick={() => handleUserSelect({
-                id: availability.user?.id || availability.user_id,
-                name: availability.user?.name || '名前なし',
-                comment: availability.comment || '',
-                time: `${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`,
-                availabilityId: availability.id
-              })}
-            >
-              <div className="w-12 h-12 bg-gray-300 rounded-full mr-4">
-                {availability.user?.avatar_url && (
-                  <img 
-                    src={availability.user.avatar_url} 
-                    alt={availability.user.name} 
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                )}
-              </div>
-              <div>
-                <div className="font-medium">{availability.user?.name || '名前なし'}</div>
-                <div className="text-sm text-gray-500">{availability.comment || ''}</div>
-              </div>
-              <div className="ml-auto text-right">
-                <div>{`${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`}</div>
-                <div className="text-xs text-gray-500">
-                  {availability.date && new Date(availability.date).toLocaleDateString('ja-JP')}
+      {/* 予定一覧 - 画面幅に収まるようにする */}
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="space-y-4 w-full">
+          {availabilities.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">予定が見つかりません</div>
+          ) : (
+            availabilities.map(availability => (
+              <div 
+                key={availability.id}
+                className="flex flex-wrap items-center p-4 bg-white rounded-lg shadow cursor-pointer hover:bg-gray-50 w-full"
+                onClick={() => handleUserSelect({
+                  id: availability.user?.id || availability.user_id,
+                  name: availability.user?.name || '名前なし',
+                  comment: availability.comment || '',
+                  time: `${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`,
+                  availabilityId: availability.id
+                })}
+              >
+                <div className="w-12 h-12 bg-gray-300 rounded-full mr-4 flex-shrink-0">
+                  {availability.user?.avatar_url && (
+                    <img 
+                      src={availability.user.avatar_url} 
+                      alt={availability.user.name} 
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  )}
+                </div>
+                <div className="flex-grow min-w-0 mr-2">
+                  <div className="font-medium truncate">{availability.user?.name || '名前なし'}</div>
+                  <div className="text-sm text-gray-500 truncate">{availability.comment || ''}</div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="whitespace-nowrap">{`${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`}</div>
+                  <div className="text-xs text-gray-500">
+                    {availability.date && new Date(availability.date).toLocaleDateString('ja-JP')}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
       
       {/* 右下の予定登録FABボタン */}
-      <div className="fixed right-4 bottom-20">
+      <div className="fixed bottom-20 right-4 z-10 mb-safe">
         <button 
           onClick={() => navigate('/create-availability')}
-          className="w-14 h-14 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-lg"
+          className="pl-4 pr-5 py-4 bg-[#ff662f] rounded-[136px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.30)] shadow-[0px_4px_18px_3px_rgba(0,0,0,0.15)] inline-flex justify-start items-center gap-3"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
+          <div className="w-6 h-6 relative">
+            <div className="w-4 h-4 left-[4px] top-[4px] absolute">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="white">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+          </div>
+          <div className="text-center justify-center text-white text-sm font-semibold font-['Inter'] leading-tight">予定を登録</div>
         </button>
       </div>
       
