@@ -103,26 +103,32 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-20">
+    <div className="max-w-md mx-auto p-4 pb-20 bg-white">
       {error && (
-        <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded">
+        <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
           {error}
         </div>
       )}
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* プロフィール画像 */}
-        <div className="flex flex-col items-center">
-          <div className="w-24 h-24 bg-gray-300 rounded-full mb-2 overflow-hidden">
-            {avatarUrl && (
+        <div className="flex flex-col items-center mt-6 mb-8">
+          <div className="w-32 h-32 bg-gray-200 rounded-full mb-3 overflow-hidden">
+            {avatarUrl ? (
               <img 
                 src={avatarUrl} 
                 alt="プロフィール" 
                 className="w-full h-full object-cover"
               />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
             )}
           </div>
-          <label className="cursor-pointer text-blue-500">
+          <label className="cursor-pointer text-blue-500 font-medium text-sm">
             画像を変更
             <input
               type="file"
@@ -138,8 +144,8 @@ const ProfilePage = () => {
         </div>
         
         {/* 名前 */}
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+        <div className="mb-6">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
             名前
           </label>
           <input
@@ -148,41 +154,33 @@ const ProfilePage = () => {
             value={name}
             onChange={e => setName(e.target.value)}
             required
-            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="名前を入力"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
           />
         </div>
         
         {/* 更新ボタン */}
-        <div>
+        <div className="mt-8">
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+            className="w-full bg-orange-500 inline-flex justify-center items-center gap-3 text-white"
+            style={{borderRadius: "300px", padding: "16px 0"}}
           >
             {loading ? '更新中...' : 'プロフィールを更新'}
-          </button>
-        </div>
-        
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="text-sm text-gray-600 hover:underline"
-          >
-            キャンセル
           </button>
         </div>
       </form>
       
       {/* ログアウトボタン */}
-      <div className="mt-8 border-t pt-6">
+      <div className="pt-3">
         <button
           type="button"
           onClick={async () => {
             await supabase.auth.signOut();
             navigate('/login');
           }}
-          className="w-full px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="w-full px-4 py-3 text-red-500 font-medium text-base rounded-lg"
         >
           ログアウト
         </button>

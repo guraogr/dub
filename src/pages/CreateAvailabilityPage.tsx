@@ -126,7 +126,7 @@ const CreateAvailabilityPage = () => {
             id="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-full py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             required
           />
         </div>
@@ -143,7 +143,7 @@ const CreateAvailabilityPage = () => {
         id="startTime"
         value={startTime}
         onChange={(e) => setStartTime(e.target.value)}
-        className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        className="mt-1 block w-full border border-gray-300 rounded-full py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         required
       />
     </div>
@@ -156,13 +156,13 @@ const CreateAvailabilityPage = () => {
         id="endTime"
         value={endTime}
         onChange={(e) => setEndTime(e.target.value)}
-        className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+        className="mt-1 block w-full border border-gray-300 rounded-full py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         required
       />
     </div>
   </div>
 ) : (
-  <div className="p-2 bg-gray-50 rounded-md border border-gray-200">
+  <div className="p-2 bg-gray-50 rounded-full border border-gray-200">
     <div className="text-sm text-gray-500">
       設定時間: 00:00 - 23:59（終日）
     </div>
@@ -180,7 +180,7 @@ const CreateAvailabilityPage = () => {
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="例: 暇だからお出かけしよう〜！"
-            className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-full py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
           <div className="mt-1 text-xs text-gray-500">
             みんなに呼びかけるメッセージを書いてみよう！
@@ -191,7 +191,8 @@ const CreateAvailabilityPage = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+          className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+          style={{borderRadius: "300px", padding: "16px 0"}}
         >
           {loading ? '登録中...' : '予定を登録する'}
         </button>

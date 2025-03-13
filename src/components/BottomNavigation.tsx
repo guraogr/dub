@@ -123,15 +123,18 @@ const BottomNavigation = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 flex justify-center">
-      <div className="w-full max-w-md bg-white border-t border-gray-300 flex justify-between p-4 pb-safe">
+      <div className="w-full max-w-md bg-white border-t border-gray-300 flex justify-between p-4">
         {navItems.map((item, index) => (
           <div key={index} className="text-center w-1/4">
             <button 
               className={`flex flex-col items-center w-full ${location.pathname === item.path ? 'text-black' : 'text-gray-500'}`}
+              style={{
+                padding: 0
+              }}
               onClick={() => navigate(item.path)}
             >
               {item.path === '/messages' ? (
-                <div className="relative">
+                <div className="relative flex justify-center">
                   {item.icon}
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -140,7 +143,9 @@ const BottomNavigation = () => {
                   )}
                 </div>
               ) : (
-                item.icon
+                <div className="flex justify-center">
+                  {item.icon}
+                </div>
               )}
               <div className="text-xs mt-1">{item.label}</div>
             </button>

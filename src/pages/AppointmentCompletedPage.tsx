@@ -64,7 +64,7 @@ const AppointmentCompletedPage = () => {
         {isPending ? '遊びの誘いを送りました' : '遊びの約束が決まりました'}
       </h1>
       
-      <div className="bg-white rounded-lg p-6 shadow-md mb-6">
+      <div className="bg-white rounded-full p-6 shadow-md mb-6">
         {isPending ? (
           <div className="mb-4">
             <div className="text-sm text-gray-500">誘いを送った相手</div>
@@ -87,7 +87,7 @@ const AppointmentCompletedPage = () => {
         </div>
         
         {isPending ? (
-          <div className="bg-yellow-50 p-4 rounded-md mb-6">
+          <div className="bg-yellow-50 p-4 rounded-full mb-6">
             <p className="text-sm text-yellow-700">
               相手が誘いを承諾するまでお待ちください。承諾されると通知が届きます。
             </p>
@@ -103,14 +103,14 @@ const AppointmentCompletedPage = () => {
         <>
           <button
             onClick={openLine}
-            className="w-full py-3 bg-green-500 text-white rounded-md mb-3 flex items-center justify-center"
+            className="w-full py-3 bg-green-500 text-white rounded-full mb-3 flex items-center justify-center"
           >
             LINE アプリを開く
           </button>
           
           <button
             onClick={openInstagram}
-            className="w-full py-3 border border-blue-500 text-blue-500 rounded-md mb-6 flex items-center justify-center"
+            className="w-full py-3 border border-blue-500 text-blue-500 rounded-full mb-6 flex items-center justify-center"
           >
             Instagram を開く
           </button>
@@ -119,7 +119,7 @@ const AppointmentCompletedPage = () => {
       
       <button
         onClick={() => navigate('/')}
-        className="w-full py-3 text-gray-600 rounded-md"
+        className="w-full py-3 text-gray-600 rounded-full"
       >
         ホームに戻る
       </button>

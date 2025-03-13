@@ -17,7 +17,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ user, isOpen, onClose, onInvi
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg p-6 w-80 max-w-md">
+      <div className="bg-white rounded-full p-6 w-80 max-w-md">
         <h3 className="text-lg font-medium mb-4">遊びに誘いますか？</h3>
         
         <div className="flex items-center mb-4">
@@ -32,13 +32,13 @@ const InviteModal: React.FC<InviteModalProps> = ({ user, isOpen, onClose, onInvi
         <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100"
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-100"
           >
             キャンセル
           </button>
           <button
             onClick={onInvite}
-            className="px-4 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500"
+            className="px-4 py-2 bg-yellow-400 text-black rounded-full hover:bg-yellow-500"
           >
             遊びに誘う
           </button>

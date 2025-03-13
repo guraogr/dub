@@ -8,25 +8,45 @@ html, body, #root {
   background-color: #fafafa;
 }
 
+input {
+  border-radius: 8px;
+}
+
 /* Toastのカスタムスタイル */
 [data-sonner-toast] {
-  background-color: #424242 !important;
-  color: #fff !important;
-  border-radius: 8px !important;
-  padding-left: 16px !important;
-  padding-right: 16px !important;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important;
+  background-color: #333333 ;
+  color: #fff ;
+  border-radius: 10px ;
+  padding: 16px ;
+  display: flex ;
+  justify-content: flex-start ;
+  align-items: center ;
+  gap: 8px ;
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3) ;
+  width: 100% ;
+  height: 100% ;
+}
+
+[data-sonner-toast] [data-content] {
+  color: white ;
+  font-size: 13px ;
+  font-family: 'Hiragino Kaku Gothic Pro', sans-serif ;
+  font-weight: 600 ;
+  line-height: 18px ;
+  word-wrap: break-word ;
 }
 
 [data-sonner-toast] [data-icon] {
-  display: none !important;
+  display: none ;
 }
 
 [data-sonner-toast] [data-close-button] {
-  margin-left: auto !important;
+  margin-left: auto ;
+  width: 24px ;
+  height: 24px ;
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
 }
 
 :root {
@@ -44,11 +64,11 @@ html, body, #root {
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #008CFF;
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #008CFF;
 }
 
 /* クロスブラウザ対応のスタイル */
@@ -56,15 +76,14 @@ button,
 input[type="button"],
 input[type="submit"],
 input[type="reset"] {
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
-  border-radius: 4px !important;
-  border: 1px solid transparent !important;
-  font-family: inherit !important;
-  font-size: inherit !important;
-  cursor: pointer !important;
-  display: inline-block !important;
+  -webkit-appearance: none ;
+  -moz-appearance: none ;
+  appearance: none ;
+  border-radius: 4px ;
+  border: 1px solid transparent ;
+  font-family: inherit ;
+  font-size: inherit ;
+  cursor: pointer ;
 }
 
 /* Safari特有のボタンスタイル修正 */
@@ -73,12 +92,31 @@ input[type="reset"] {
   input[type="button"],
   input[type="submit"],
   input[type="reset"] {
-    display: inline-block !important;
-    padding: 0.5rem 1rem !important;
-    background-color: #3b82f6 !important;
-    color: white !important;
-    border: none !important;
+    display: inline-block ;
+    padding: 0.5rem 1rem ;
+    background-color: #3b82f6 ;
+    color: white ;
+    border: none ;
   }
+}
+
+/* ボタンのフォーカスと活性状態のスタイルを削除 */
+button:focus,
+button:active,
+input[type="button"]:focus,
+input[type="button"]:active,
+input[type="submit"]:focus,
+input[type="submit"]:active,
+input[type="reset"]:focus,
+input[type="reset"]:active {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* フォーカス時の枠線を削除 */
+*:focus {
+  outline: none !important;
 }
 
 /* iOSのデフォルトスタイルをリセット */
@@ -87,7 +125,6 @@ textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  border-radius: 0;
 }
 
 /* フォーカス時のアウトラインを統一 */
@@ -135,7 +172,6 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
@@ -143,9 +179,6 @@ button {
   font-family: inherit;
   cursor: pointer;
   transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
 }
 button:focus,
 button:focus-visible {

@@ -70,8 +70,8 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
   };
   
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg p-6 w-80 max-w-md">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+      <div className="bg-white p-6 w-80 max-w-md rounded-2xl">
         <h3 className="text-lg font-medium mb-4">予定を編集</h3>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -82,7 +82,7 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
               id="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              className="mt-1 block w-full border border-gray-300 rounded-full p-2"
               required
             />
           </div>
@@ -95,7 +95,7 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
                 id="startTime"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                className="mt-1 block w-full border border-gray-300 rounded-full p-2"
                 required
               />
             </div>
@@ -107,7 +107,7 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
                 id="endTime"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                className="mt-1 block w-full border border-gray-300 rounded-full p-2"
                 required
               />
             </div>
@@ -121,7 +121,7 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="例: 暇だからお出かけしよう〜！"
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              className="mt-1 block w-full border border-gray-300 rounded-full p-2"
             />
           </div>
           
@@ -129,14 +129,16 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100"
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-100"
+              style={{borderRadius: "1000px"}}
             >
               キャンセル
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+              className="px-4 py-2 bg-orange-500 text-white rounded-full disabled:opacity-50"
+              style={{borderRadius: "1000px"}}
             >
               {loading ? '更新中...' : '更新する'}
             </button>

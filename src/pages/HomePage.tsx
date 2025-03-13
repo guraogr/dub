@@ -56,6 +56,11 @@ const HomePage = () => {
     };
     
     checkUser();
+    
+    // クリーンアップ関数を返す
+    return () => {
+      // コンポーネントがアンマウントされたときの処理
+    };
   }, [navigate]);
   
   // 日付一覧を生成する関数
@@ -321,9 +326,10 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
               return (
                 <button
                   key={date.formattedDate}
-                  className={`flex-none flex flex-col items-center justify-center w-56px h-56px rounded-lg transition duration-150 ease-in-out ${
+                  className={`flex-none flex flex-col items-center justify-center w-56px h-56px rounded-full transition duration-150 ease-in-out ${
                     selectedDate === date.formattedDate ? 'bg-yellow-400 text-black font-bold' : 'bg-white'
                   } hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500`}
+                  style={{border: "1px solid #e5e7eb", }}
                   onClick={() => {
                     console.log(`${date.day}日ボタンをクリック: ${date.formattedDate}`);
                     setSelectedDate(date.formattedDate);
@@ -349,7 +355,7 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
             availabilities.map(availability => (
               <div 
                 key={availability.id}
-                className="flex flex-wrap items-center p-4 bg-white rounded-lg shadow cursor-pointer hover:bg-gray-50 w-full"
+                className="flex flex-wrap items-center p-4 bg-white rounded-full shadow cursor-pointer hover:bg-gray-50 w-full"
                 onClick={() => handleUserSelect({
                   id: availability.user?.id || availability.user_id,
                   name: availability.user?.name || '名前なし',
@@ -388,11 +394,12 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
         <div className="w-full max-w-md px-4 flex justify-end">
           <button 
             onClick={() => navigate('/create-availability')}
-            className="pl-4 pr-5 py-4 bg-[#ff662f] rounded-[136px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.30)] shadow-[0px_4px_18px_3px_rgba(0,0,0,0.15)] inline-flex justify-start items-center gap-3 pointer-events-auto"
+            className="flex pl-4 pr-5 py-4 bg-[#ff662f] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.30)] shadow-[0px_4px_18px_3px_rgba(0,0,0,0.15)] inline-flex justify-start items-center gap-3 pointer-events-auto rounded-full"
+            style={{borderRadius: 100, gap: "2px"}}
           >
             <div className="w-6 h-6 relative">
-              <div className="w-4 h-4 left-[4px] top-[4px] absolute">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="white">
+              <div className="w-4 h-4 left-[4px] top-[4px] ">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="white">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </div>

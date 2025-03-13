@@ -23,7 +23,7 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg p-6 w-80 max-w-md relative">
+      <div className="bg-white rounded-full p-6 w-80 max-w-md relative">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
@@ -62,13 +62,13 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
         <div className="flex justify-end space-x-2">
           <button
             onClick={() => onReject(message.id, message.invitation?.id)}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100"
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-100"
           >
             拒否する
           </button>
           <button
             onClick={() => onAccept(message.id, message.invitation?.id)}
-            className="px-4 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500"
+            className="px-4 py-2 bg-yellow-400 text-black rounded-full hover:bg-yellow-500"
           >
             承諾する
           </button>
@@ -549,19 +549,19 @@ const formatAvailabilityDate = (availability: any) => {
   return (
     <div className="max-w-md mx-auto p-4 pb-20">
       {/* タブ */}
-      <div className="flex mb-4 overflow-hidden border border-yellow-500 rounded-lg bg-gray-100">
+      <div className="flex mb-4 overflow-hidden border-2 border-gray-100 rounded-lg bg-gray-100">
         <button
           className={`flex-1 py-3 text-center focus:outline-none ${activeTab === 'inbox' 
-            ? 'bg-white text-black font-medium border-2 border-yellow-500 rounded-lg' 
-            : 'bg-gray-100 text-gray-500 rounded-none'}`}
+            ? 'bg-white text-black font-medium'
+            : 'bg-gray-100 text-gray-500'}`}
           onClick={() => handleTabChange('inbox')}
         >
           受信箱
         </button>
         <button
           className={`flex-1 py-3 text-center focus:outline-none ${activeTab === 'sent' 
-            ? 'bg-white text-black font-medium border-2 border-yellow-500 rounded-lg' 
-            : 'bg-gray-100 text-gray-500 rounded-none'}`}
+            ? 'bg-white text-black font-medium'
+            : 'bg-gray-100 text-gray-500'}`}
           onClick={() => handleTabChange('sent')}
         >
           送信箱
@@ -578,7 +578,7 @@ const formatAvailabilityDate = (availability: any) => {
           {messages.map(message => (
             <div
                 key={message.id}
-                className="relative bg-white rounded-lg cursor-pointer px-4 py-4 border-b border-gray-100"
+                className="relative bg-white cursor-pointer px-4 py-6 border-b border-gray-100"
                 onClick={() => handleMessageClick(message)}
             >
                 <div className="flex items-center">

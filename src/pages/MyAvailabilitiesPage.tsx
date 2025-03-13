@@ -172,11 +172,11 @@ const MyAvailabilitiesPage = () => {
       ) : availabilities.length === 0 ? (
         <div className="text-center py-8 text-gray-500">募集中の予定はありません</div>
       ) : (
-        <div className="space-y-4 mb-20">
+        <div className=" mb-20">
           {availabilities.map(availability => (
             <div 
               key={availability.id}
-              className="flex items-center p-4 bg-white rounded-lg shadow"
+              className="flex items-center px-4 py-6 bg-white border-b border-gray-100"
             >
               <div className="flex-1">
                 <div className="font-medium">
@@ -194,13 +194,13 @@ const MyAvailabilitiesPage = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleEditAvailability(availability)}
-                  className="px-3 py-1 text-sm text-blue-500 border border-blue-300 rounded-md hover:bg-blue-50"
+                  className="px-3 py-1 text-sm text-blue-500 border border-blue-300 rounded-full hover:bg-blue-50"
                 >
                   編集
                 </button>
                 <button
                   onClick={() => handleDeleteAvailability(availability.id)}
-                  className="px-3 py-1 text-sm text-red-500 border border-red-300 rounded-md hover:bg-red-50"
+                  className="px-3 py-1 text-sm text-red-500 border border-red-300 rounded-full hover:bg-red-50"
                 >
                   削除
                 </button>

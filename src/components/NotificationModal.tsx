@@ -137,7 +137,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onC
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg p-6 w-80 max-w-md">
+      <div className="bg-white rounded-full p-6 w-80 max-w-md">
         <h3 className="text-lg font-medium mb-4">遊びの誘いが届きました</h3>
         
         <div className="flex items-center mb-4">
@@ -179,13 +179,13 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onC
         <div className="flex justify-end space-x-2">
           <button
             onClick={handleReject}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100"
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-100"
           >
             拒否する
           </button>
           <button
             onClick={handleAccept}
-            className="px-4 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500"
+            className="px-4 py-2 bg-yellow-400 text-black rounded-full hover:bg-yellow-500"
           >
             承諾する
           </button>

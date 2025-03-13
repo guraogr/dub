@@ -1,5 +1,6 @@
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
+import { CustomToaster, initCustomToast } from './components/CustomToast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
 import LoginPage from './pages/LoginPage';
@@ -34,6 +35,9 @@ function App() {
       setSession(session);
       setLoading(false);
     });
+
+    // カスタムToastの初期化
+    initCustomToast();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -173,25 +177,8 @@ function App() {
     <Router>
       {/* 全体をAppLayoutで囲む */}
       <AppLayout>
-        {/* Toasterコンポーネントを追加 */}
-        <Toaster
-          position="top-center"
-          theme="dark"
-          closeButton
-          toastOptions={{
-            style: {
-              background: '#424242',
-              color: '#fff',
-              borderRadius: '8px',
-              paddingLeft: '16px',
-              paddingRight: '16px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              boxShadow: '0 6px 12px rgba(0, 0, 0, 0.3)',
-            }
-          }}
-        />
+        {/* カスタムToasterコンポーネントを追加 */}
+        <CustomToaster />
         
         {/* 通知モーダル */}
         {showNotification && notification && (

@@ -44,8 +44,8 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg">
         <h1 className="text-2xl font-bold text-center">会員登録</h1>
         
         {message && (
@@ -65,7 +65,7 @@ const RegisterPage: React.FC = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none"
             />
           </div>
           
@@ -79,7 +79,7 @@ const RegisterPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none"
             />
           </div>
           
@@ -94,7 +94,7 @@ const RegisterPage: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none"
             />
           </div>
           
@@ -102,7 +102,7 @@ const RegisterPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 appearance-none"
+              className="w-full px-4 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 appearance-none"
               style={{
                 WebkitAppearance: 'none',
                 appearance: 'none',
@@ -122,7 +122,7 @@ const RegisterPage: React.FC = () => {
           </div>
           
           <div className="text-center">
-            <a href="/login" className="text-sm text-blue-600 hover:underline">
+            <a href="/login" className="text-sm text-orange-600 hover:underline">
               すでにアカウントをお持ちの方はログイン
             </a>
           </div>
