@@ -51,6 +51,60 @@ a:hover {
   color: #535bf2;
 }
 
+/* クロスブラウザ対応のスタイル */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  border-radius: 4px !important;
+  border: 1px solid transparent !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+}
+
+/* Safari特有のボタンスタイル修正 */
+@supports (-webkit-touch-callout: none) {
+  button,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    display: inline-block !important;
+    padding: 0.5rem 1rem !important;
+    background-color: #3b82f6 !important;
+    color: white !important;
+    border: none !important;
+  }
+}
+
+/* iOSのデフォルトスタイルをリセット */
+input,
+textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+
+/* フォーカス時のアウトラインを統一 */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+/* Safariでのボタンのデフォルトスタイルを無効化 */
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
 html, body {
   margin: 0;
   padding: 0;

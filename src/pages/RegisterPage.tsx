@@ -102,7 +102,20 @@ const RegisterPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+              className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 appearance-none"
+              style={{
+                WebkitAppearance: 'none',
+                appearance: 'none',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.375rem',
+                cursor: 'pointer',
+                fontWeight: '500',
+                display: 'block',
+                width: '100%'
+              }}
             >
               {loading ? '登録中...' : '登録する'}
             </button>
