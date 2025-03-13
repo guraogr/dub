@@ -51,3 +51,14 @@ export interface MessageType {
   is_read: boolean;
   created_at: string;
 }
+
+export interface ExtendedMessageType extends MessageType {
+  sender?: User | null;
+  recipient?: User | null;
+  invitation?: InvitationType & {
+    availability?: AvailabilityType | null;
+  } | null;
+  // UI表示用の追加プロパティ
+  time?: string;
+  comment?: string;
+}
