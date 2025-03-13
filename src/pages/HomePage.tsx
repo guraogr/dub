@@ -287,11 +287,9 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
       // モーダルを閉じる
       setModalOpen(false);
       
-      // トースト通知を表示
-      toast.success(`${selectedUser.name}さんを遊びに誘いました。`, {
-        duration: 3000,
-        style: { background: '#4ade80' } // 任意のスタイル
-      });
+      // AppointmentCompletedPageに遷移する
+      navigate(`/appointment-completed/${invitationData[0].id}`);
+      
   
     } catch (error: any) {
       console.error('誘いの送信に失敗しました', error);
@@ -306,11 +304,11 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
   }
 
   return (
-    <div className="pb-20">
+    <div className="py-8">
       {/* 日付選択部分 - 左右にはみ出しても良い */}
       <div className="w-full mb-4">
-        <div className="overflow-x-auto">
-          <div className="flex space-x-2 pb-2 px-4">
+        <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex space-x-2 pb-2 px-4" style={{ scrollbarWidth: 'none' }}>
             {dateList.map((date, index) => {
               // 曜日の色を設定する関数
               const getWeekdayColor = (date: Date) => {
@@ -385,21 +383,23 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
         </div>
       </div>
       
-      {/* 右下の予定登録FABボタン */}
-      <div className="fixed bottom-20 right-4 z-10 mb-safe">
-        <button 
-          onClick={() => navigate('/create-availability')}
-          className="pl-4 pr-5 py-4 bg-[#ff662f] rounded-[136px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.30)] shadow-[0px_4px_18px_3px_rgba(0,0,0,0.15)] inline-flex justify-start items-center gap-3"
-        >
-          <div className="w-6 h-6 relative">
-            <div className="w-4 h-4 left-[4px] top-[4px] absolute">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="white">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
+      {/* プロフィールの少し上に予定登録ボタンを配置 */}
+      <div className="fixed bottom-28 right-0 left-0 z-10 flex justify-center pointer-events-none">
+        <div className="w-full max-w-md px-4 flex justify-end">
+          <button 
+            onClick={() => navigate('/create-availability')}
+            className="pl-4 pr-5 py-4 bg-[#ff662f] rounded-[136px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.30)] shadow-[0px_4px_18px_3px_rgba(0,0,0,0.15)] inline-flex justify-start items-center gap-3 pointer-events-auto"
+          >
+            <div className="w-6 h-6 relative">
+              <div className="w-4 h-4 left-[4px] top-[4px] absolute">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="white">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
             </div>
-          </div>
-          <div className="text-center justify-center text-white text-sm font-semibold font-['Inter'] leading-tight">予定を登録</div>
-        </button>
+            <div className="text-center justify-center text-white text-sm font-semibold font-['Inter'] leading-tight">予定を登録</div>
+          </button>
+        </div>
       </div>
       
       {/* 下部ナビゲーション */}

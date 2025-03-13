@@ -205,7 +205,7 @@ function App() {
           <Route path="/login" element={!session ? <LoginPage /> : <Navigate to="/" />} />
           <Route path="/register" element={!session ? <RegisterPage /> : <Navigate to="/" />} />
           <Route path="/messages" element={session ? <MessagesPage /> : <Navigate to="/login" />} />
-          <Route path="/appointmentcompleted/:id" element={session ? <AppointmentCompletedPage /> : <Navigate to="/login" />} />
+          <Route path="/appointment-completed/:id" element={session ? <AppointmentCompletedPage /> : <Navigate to="/login" />} />
           <Route path="/profile" element={session ? <ProfilePage /> : <Navigate to="/login" />} />
           <Route path="/myavailabilities" element={session ? <MyAvailabilitiesPage /> : <Navigate to="/login" />} />
           <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />

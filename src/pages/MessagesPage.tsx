@@ -36,9 +36,9 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
         
         <div className="flex items-center mb-4">
           <div className="w-12 h-12 bg-gray-300 rounded-full mr-4">
-            {message.sender?.avatarurl && (
+            {(message.sender?.avatarurl || message.sender?.avatar_url) && (
               <img 
-                src={message.sender.avatarurl} 
+                src={message.sender.avatarurl || message.sender.avatar_url} 
                 alt={message.sender.name} 
                 className="w-full h-full object-cover rounded-full"
               />
@@ -88,6 +88,7 @@ const MessagesPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
 
+
   // ユーザーの認証状態を確認
   useEffect(() => {
     const checkUser = async () => {
@@ -109,6 +110,36 @@ const MessagesPage = () => {
       fetchMessages(user.id);
     }
   }, [user, activeTab]);
+
+  // アイコンの背景色を取得
+  const getIconColor = (type: string, isInbox: boolean) => {
+    // 受信箱の場合
+    if (isInbox) {
+      switch (type) {
+        case 'invitation':
+          return 'bg-green-500'; // 緑色
+        case 'invitation_pending':
+          return 'bg-yellow-500'; // 黄色
+        case 'rejection':
+          return 'bg-gray-400'; // 灰色
+        default:
+          return 'bg-green-500'; // デフォルトは緑色
+      }
+    } 
+    // 送信箱の場合
+    else {
+      switch (type) {
+        case 'invitation':
+          return 'bg-green-500'; // 緑色
+        case 'invitation_pending':
+          return 'bg-yellow-500'; // 黄色
+        case 'rejection':
+          return 'bg-gray-400'; // 灰色
+        default:
+          return 'bg-green-500'; // デフォルトは緑色
+      }
+    }
+  };
 
   // メッセージを取得
   const fetchMessages = async (userId: string) => {
@@ -440,17 +471,46 @@ const formatAvailabilityDate = (availability: any) => {
   };
 
   // メッセージアイコンの取得
-  const getMessageIcon = (type: string) => {
-    switch (type) {
-      case 'invitation':
-        return '👋';
-      case 'acceptance':
-        return '✅';
-      case 'rejection':
-        return '❌';
-      default:
-        return '💬';
+  const getMessageIcon = (type: string, isInbox: boolean) => {
+    // 受信箱の場合
+    if (isInbox) {
+      switch (type) {
+        case 'invitation':
+          return '↘'; // 緑色の下矢印
+        case 'invitation_pending':
+          return '↧'; // 黄色の下矢印
+        case 'rejection':
+          return '✖'; // 灰色のクロス
+        default:
+          return '↘'; // デフォルトは緑色の下矢印
+      }
+    } 
+    // 送信箱の場合
+    else {
+      switch (type) {
+        case 'invitation':
+          return '↘'; // 緑色の下矢印
+        case 'invitation_pending':
+          return '↩'; // 黄色の右矢印
+        case 'rejection':
+          return '✖'; // 灰色のクロス
+        default:
+          return '↘'; // デフォルトは緑色の下矢印
+      }
     }
+  };
+  
+  // 日付のフォーマット（例：3/25(火) 12:31～04:12）
+  const formatDateWithDay = (dateStr: string) => {
+    if (!dateStr) return '';
+    
+    const date = new Date(dateStr);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    
+    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
+    
+    return `${month}/${day}(${dayOfWeek})`;
   };
 
   // ステータス文言を取得
@@ -459,9 +519,9 @@ const formatAvailabilityDate = (availability: any) => {
       // 受信箱のステータス文言
       switch (message.type) {
         case 'invitation':
+          return '誘いが承諾されました';
+        case 'invitation_pending':
           return '遊びの誘いが届きました';
-        case 'acceptance':
-          return '遊びの誘いが承諾されました';
         case 'rejection':
           return '相手の予定が埋まってしまいました';
         default:
@@ -471,9 +531,9 @@ const formatAvailabilityDate = (availability: any) => {
       // 送信箱のステータス文言
       switch (message.type) {
         case 'invitation':
-          return 'スカウト送信済み';
-        case 'acceptance':
           return '遊びの誘いを承諾しました';
+        case 'invitation_pending':
+          return 'スカウト送信済み';
         case 'rejection':
           return '遊びの誘いをお断りしました';
         default:
@@ -489,15 +549,19 @@ const formatAvailabilityDate = (availability: any) => {
   return (
     <div className="max-w-md mx-auto p-4 pb-20">
       {/* タブ */}
-      <div className="flex border-b mb-4">
+      <div className="flex mb-4 overflow-hidden border border-yellow-500 rounded-lg bg-gray-100">
         <button
-          className={`flex-1 py-2 ${activeTab === 'inbox' ? 'border-b-2 border-blue-500 font-medium' : 'text-gray-500'}`}
+          className={`flex-1 py-3 text-center focus:outline-none ${activeTab === 'inbox' 
+            ? 'bg-white text-black font-medium border-2 border-yellow-500 rounded-lg' 
+            : 'bg-gray-100 text-gray-500 rounded-none'}`}
           onClick={() => handleTabChange('inbox')}
         >
           受信箱
         </button>
         <button
-          className={`flex-1 py-2 ${activeTab === 'sent' ? 'border-b-2 border-blue-500 font-medium' : 'text-gray-500'}`}
+          className={`flex-1 py-3 text-center focus:outline-none ${activeTab === 'sent' 
+            ? 'bg-white text-black font-medium border-2 border-yellow-500 rounded-lg' 
+            : 'bg-gray-100 text-gray-500 rounded-none'}`}
           onClick={() => handleTabChange('sent')}
         >
           送信箱
@@ -510,56 +574,73 @@ const formatAvailabilityDate = (availability: any) => {
       ) : messages.length === 0 ? (
         <div className="text-center py-8 text-gray-500">メッセージがありません</div>
       ) : (
-        <div className="space-y-4 mb-20">
+        <div className="mb-20">
           {messages.map(message => (
             <div
                 key={message.id}
-                className={`p-4 rounded-lg shadow cursor-pointer ${
-                activeTab === 'inbox' && !message.is_read 
-                    ? 'bg-blue-50 border-l-4 border-blue-500' 
-                    : 'bg-white'
-                }`}
+                className="relative bg-white rounded-lg cursor-pointer px-4 py-4 border-b border-gray-100"
                 onClick={() => handleMessageClick(message)}
             >
                 <div className="flex items-center">
-                <div className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full mr-3 text-lg">
-                    {getMessageIcon(message.type)}
-                </div>
-                <div className="flex-1">
-                    {/* 相手の名前と既読マーク */}
-                    <div className="flex items-center">
-                    <div className="font-medium">
+                  {/* 左側：アバター画像 */}
+                  <div className="w-[64px] h-[64px] rounded-full overflow-hidden mr-3 bg-gray-100 flex items-center justify-center">
+                    {activeTab === 'inbox' && (message.sender?.avatarurl || message.sender?.avatar_url) ? (
+                      <img 
+                        src={message.sender.avatarurl || message.sender.avatar_url} 
+                        alt={message.sender?.name || '送信者'} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : activeTab === 'sent' && (message.recipient?.avatarurl || message.recipient?.avatar_url) ? (
+                      <img 
+                        src={message.recipient.avatarurl || message.recipient.avatar_url} 
+                        alt={message.recipient?.name || '受信者'} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-xl text-yellow-500">
+                        {getMessageIcon(message.type, activeTab === 'inbox')}
+                      </div>
+                    )}
+                  </div>
+
+                  <div >
+                    <div className="flex justify-between">
+                    {/* 中央：ユーザー情報とメッセージ */}
+                    <div className="flex-1">
+                        {/* ユーザー名 */}
+                        <div className="text-lg font-medium">
                         {activeTab === 'inbox' 
-                        ? message.sender?.name || '送信者' 
-                        : message.recipient?.name || '受信者'}
-                    </div>
-                    {activeTab === 'inbox' && !message.is_read && (
-                        <span className="ml-2 w-2 h-2 bg-red-500 rounded-full"></span>
-                    )}
-                    </div>
+                            ? message.sender?.name || '送信者' 
+                            : message.recipient?.name || '受信者'}
+                        </div>
+                    </div>                 
                     
-                    {/* メッセージ内容 */}
-                    <div className="text-sm text-gray-600">
-                    {getStatusText(message)}
+                    {/* 右側：時間情報 */}
+                    <div className="flex flex-col items-end">
+                        <div className="text-gray-500 text-base">
+                            {message.invitation?.availability && (
+                            <div className="text-gray-500 mt-1 text-sm">
+                                {message.invitation.availability.date ? (
+                                `${formatDateWithDay(message.invitation.availability.date)} ${message.invitation.availability.start_time?.slice(0, 5)}～`
+                                ) : formatAvailabilityDate(message.invitation.availability)}
+                            </div>
+                            )}
+                        </div>
+                        
+                        <div className="absolute right-[12px] top-[2px] w-2 h-2 bg-orange-500 rounded-full mt-4"></div>
                     </div>
-                    
-                    {/* 遊ぶ予定の時間があれば表示 */}
-                    {message.invitation?.availability && (
-                    <div className="text-xs text-gray-500 mt-1">
-                        遊ぶ予定: {formatAvailabilityDate(message.invitation.availability)}
                     </div>
-                    )}
-                </div>
-                
-                {/* スカウトが届いた時間 */}
-                <div className="text-xs text-gray-500">
-                    {new Date(message.created_at).toLocaleString('ja-JP', {
-                    month: 'numeric',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                    })}
-                </div>
+
+                     {/* メッセージステータス - アイコンとテキスト */}
+                     <div className="flex items-center mt-1">
+                      <div className={`w-[16px] h-[16px] rounded-full flex items-center justify-center mr-1 ${getIconColor(message.type, activeTab === 'inbox')}`}>
+                        <span className="text-white text-xs">{getMessageIcon(message.type, activeTab === 'inbox')}</span>
+                      </div>
+                      <div className="text-gray-600 text-xs">
+                        {getStatusText(message)}
+                      </div>
+                    </div>
+                  </div>
                 </div>
             </div>
             ))}

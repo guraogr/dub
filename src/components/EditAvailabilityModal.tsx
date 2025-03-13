@@ -82,7 +82,7 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
               id="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
               required
             />
           </div>
@@ -95,7 +95,7 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
                 id="startTime"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
                 required
               />
             </div>
@@ -107,7 +107,7 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
                 id="endTime"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
                 required
               />
             </div>
@@ -121,7 +121,7 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="例: 暇だからお出かけしよう〜！"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
             />
           </div>
           
