@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { CustomToaster, initCustomToast } from './components/CustomToast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
+import { SupabaseProvider } from './contexts/SupabaseContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
@@ -174,9 +175,10 @@ function App() {
   }
 
   return (
-    <Router>
-      {/* 全体をAppLayoutで囲む */}
-      <AppLayout>
+    <SupabaseProvider>
+      <Router>
+        {/* 全体をAppLayoutで囲む */}
+        <AppLayout>
         {/* カスタムToasterコンポーネントを追加 */}
         <CustomToaster />
         
@@ -198,8 +200,9 @@ function App() {
           <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
           <Route path="/create-availability" element={session ? <CreateAvailabilityPage /> : <Navigate to="/login" />} />
         </Routes>
-      </AppLayout>
-    </Router>
+        </AppLayout>
+      </Router>
+    </SupabaseProvider>
   );
 }
 

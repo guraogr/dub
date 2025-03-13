@@ -188,14 +188,22 @@ const CreateAvailabilityPage = () => {
         </div>
         
         {/* 送信ボタン */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
-          style={{borderRadius: "300px", padding: "16px 0"}}
-        >
-          {loading ? '登録中...' : '予定を登録する'}
-        </button>
+        <div className="relative w-full">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 hover:bg-orange-600 text-white font-medium rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+            style={{
+              borderRadius: "300px", 
+              padding: "16px 0", 
+              backgroundColor: "#f97316",
+              position: "relative",
+              zIndex: 1
+            }}
+          >
+            {loading ? '登録中...' : '予定を登録する'}
+          </button>
+        </div>
       </form>
       
       <BottomNavigation />

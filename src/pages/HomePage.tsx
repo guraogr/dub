@@ -391,11 +391,18 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
       {/* プロフィールの少し上に予定登録ボタンを配置 */}
       <div className="fixed bottom-28 right-0 left-0 z-10 flex justify-center pointer-events-none">
         <div className="w-full max-w-md px-4 flex justify-end">
-          <button 
-            onClick={() => navigate('/create-availability')}
-            className="flex pl-4 pr-5 py-4 bg-[#ff662f] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.30)] shadow-[0px_4px_18px_3px_rgba(0,0,0,0.15)] inline-flex justify-start items-center gap-3 pointer-events-auto rounded-full"
-            style={{borderRadius: 100, gap: "2px"}}
-          >
+          <div className="relative inline-block pointer-events-auto">
+            <button 
+              onClick={() => navigate('/create-availability')}
+              className="flex pl-4 pr-5 py-4 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.30)] shadow-[0px_4px_18px_3px_rgba(0,0,0,0.15)] inline-flex justify-start items-center gap-3 rounded-full"
+              style={{
+                borderRadius: 100, 
+                gap: "2px", 
+                backgroundColor: "#ff662f",
+                position: "relative",
+                zIndex: 1
+              }}
+            >
             <div className="w-6 h-6 relative">
               <div className="w-4 h-4 left-[4px] top-[4px] ">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="white">
@@ -404,7 +411,8 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
               </div>
             </div>
             <div className="text-center justify-center text-white text-sm font-semibold font-['Inter'] leading-tight">予定を登録</div>
-          </button>
+            </button>
+          </div>
         </div>
       </div>
       
