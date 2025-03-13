@@ -60,11 +60,11 @@ const AppointmentCompletedPage = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-xl font-bold mb-6 text-center">
+      <h1 className="text-xl font-bold mb-6 text-center py-6">
         {isPending ? '遊びの誘いを送りました' : '遊びの約束が決まりました'}
       </h1>
       
-      <div className="bg-white rounded-full p-6 shadow-md mb-6">
+      <div className="p-6 mb-6 border-1 border-gray-100 rounded-lg">
         {isPending ? (
           <div className="mb-4">
             <div className="text-sm text-gray-500">誘いを送った相手</div>
@@ -87,7 +87,7 @@ const AppointmentCompletedPage = () => {
         </div>
         
         {isPending ? (
-          <div className="bg-yellow-50 p-4 rounded-full mb-6">
+          <div className="bg-yellow-50 p-4 mb-6">
             <p className="text-sm text-yellow-700">
               相手が誘いを承諾するまでお待ちください。承諾されると通知が届きます。
             </p>
@@ -119,7 +119,8 @@ const AppointmentCompletedPage = () => {
       
       <button
         onClick={() => navigate('/')}
-        className="w-full py-3 text-gray-600 rounded-full"
+        className="w-full text-gray-600  bg-orange-500 text-white"
+        style={{ borderRadius: 1000,padding: '16px 0' }}
       >
         ホームに戻る
       </button>

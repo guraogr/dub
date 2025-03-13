@@ -112,32 +112,31 @@ const MessagesPage = () => {
   }, [user, activeTab]);
 
   // アイコンの背景色を取得
-  const getIconColor = (type: string, isInbox: boolean, message: any) => {
-    // 承認済みの誘いの場合は緑色
-    if (type === 'invitation' && message?.invitation?.status === 'accepted') {
-      return 'bg-green-500'; // 承認済みの誘いは緑色
-    }
-    
+  const getIconColor = (type: string, isInbox: boolean) => {
     // 受信箱の場合
     if (isInbox) {
       switch (type) {
         case 'invitation':
-          return 'bg-[#FFC82F]'; // 黄色(#FFC82F)
+          return 'bg-green-500'; // 緑色
+        case 'invitation_pending':
+          return 'bg-yellow-500'; // 黄色
         case 'rejection':
           return 'bg-gray-400'; // 灰色
         default:
-          return 'bg-[#FFC82F]'; // デフォルトは黄色
+          return 'bg-green-500'; // デフォルトは緑色
       }
     } 
     // 送信箱の場合
     else {
       switch (type) {
         case 'invitation':
-          return 'bg-[#FFC82F]'; // 黄色(#FFC82F)
+          return 'bg-green-500'; // 緑色
+        case 'invitation_pending':
+          return 'bg-yellow-500'; // 黄色
         case 'rejection':
           return 'bg-gray-400'; // 灰色
         default:
-          return 'bg-[#FFC82F]'; // デフォルトは黄色
+          return 'bg-green-500'; // デフォルトは緑色
       }
     }
   };
@@ -167,11 +166,9 @@ const MessagesPage = () => {
         .map(inv => inv.id) || [];
         
       console.log('承認・拒否済みの招待ID:', respondedInvitationIds);
-      console.log('アクティブタブ:', activeTab);
   
       if (activeTab === 'inbox') {
         // 受信メッセージの処理
-        // 承認・拒否済みのスカウトを除外するクエリ
         const { data, error } = await supabase
           .from('messages')
           .select(`
@@ -182,15 +179,49 @@ const MessagesPage = () => {
             )
           `)
           .eq('recipient_id', userId)
-          .not('invitation.status', 'in', '("accepted","rejected")')
           .order('created_at', { ascending: false });
           
         if (error) throw error;
         console.log('受信メッセージ (全て):', data);
         
         if (data) {
-          // データベースクエリで除外済みなので、フィルタリングは不要
-          const filteredData = data;
+          const filteredData = data.filter(message => {
+            // 誘いタイプで、対応する招待IDが応答済みリストにある場合は非表示
+            if ((message.type === 'invitation' || message.type === 'invitation_pending') && 
+                message.invitation_id && 
+                respondedInvitationIds.includes(message.invitation_id)) {
+              console.log('応答済みのため非表示:', message);
+              return false;
+            }
+            
+            // 日時によるフィルタリング
+            const availability = message.invitation?.availability;
+            if (availability) {
+              const availDate = new Date(availability.date);
+              availDate.setHours(0, 0, 0, 0);
+              
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              
+              if (availDate < today) {
+                console.log('過去の日付のため非表示:', availability.date);
+                return false;
+              }
+              
+              if (availDate.getTime() === today.getTime()) {
+                const now = new Date();
+                const [startHour, startMinute] = availability.start_time.split(':').map(Number);
+                
+                if (now.getHours() > startHour || (now.getHours() === startHour && now.getMinutes() > startMinute)) {
+                  console.log('過去の時間のため非表示:', availability.start_time);
+                  return false;
+                }
+              }
+            }
+            
+            return true;
+          });
+          
           console.log('受信メッセージ (フィルター後):', filteredData);
           setMessages(filteredData || []);
         } else {
@@ -198,8 +229,7 @@ const MessagesPage = () => {
         }
       } 
       else {
-        // 送信メッセージの処理
-        // 承認・拒否済みのスカウトを除外するクエリ
+        // 送信メッセージの処理（同様の修正）
         const { data, error } = await supabase
           .from('messages')
           .select(`
@@ -210,15 +240,45 @@ const MessagesPage = () => {
             )
           `)
           .eq('sender_id', userId)
-          .not('invitation.status', 'in', '("accepted","rejected")')
           .order('created_at', { ascending: false });
           
         if (error) throw error;
         console.log('送信メッセージ (全て):', data);
         
         if (data) {
-          // データベースクエリで除外済みなので、フィルタリングは不要
-          const filteredData = data;
+          const filteredData = data.filter(message => {
+            // 誘いタイプで、対応する招待IDが応答済みリストにある場合は非表示
+            if ((message.type === 'invitation' || message.type === 'invitation_pending') && 
+                message.invitation_id && 
+                respondedInvitationIds.includes(message.invitation_id)) {
+              console.log('応答済みのため非表示:', message);
+              return false;
+            }
+            
+            // 日時によるフィルタリング（同上）
+            const availability = message.invitation?.availability;
+            if (availability) {
+              const availDate = new Date(availability.date);
+              availDate.setHours(0, 0, 0, 0);
+              
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              
+              if (availDate < today) return false;
+              
+              if (availDate.getTime() === today.getTime()) {
+                const now = new Date();
+                const [startHour, startMinute] = availability.start_time.split(':').map(Number);
+                
+                if (now.getHours() > startHour || (now.getHours() === startHour && now.getMinutes() > startMinute)) {
+                  return false;
+                }
+              }
+            }
+            
+            return true;
+          });
+          
           console.log('送信メッセージ (フィルター後):', filteredData);
           setMessages(filteredData || []);
         } else {
@@ -459,14 +519,9 @@ const formatAvailabilityDate = (availability: any) => {
       // 受信箱のステータス文言
       switch (message.type) {
         case 'invitation':
-          // invitationタイプの場合、招待のステータスによって表示を変える
-          if (message.invitation?.status === 'pending') {
-            return '遊びの誘いが届きました';
-          } else if (message.invitation?.status === 'accepted') {
-            return '誘いが承諾されました';
-          } else {
-            return '遊びの誘いが届きました';
-          }
+          return '誘いが承諾されました';
+        case 'invitation_pending':
+          return '遊びの誘いが届きました';
         case 'rejection':
           return '相手の予定が埋まってしまいました';
         default:
@@ -476,7 +531,8 @@ const formatAvailabilityDate = (availability: any) => {
       // 送信箱のステータス文言
       switch (message.type) {
         case 'invitation':
-          // 送信箱の場合は常に「スカウト送信済み」と表示
+          return '遊びの誘いを承諾しました';
+        case 'invitation_pending':
           return 'スカウト送信済み';
         case 'rejection':
           return '遊びの誘いをお断りしました';
@@ -511,7 +567,7 @@ const formatAvailabilityDate = (availability: any) => {
           送信箱
         </button>
       </div>
-
+      
       {/* メッセージ一覧 */}
       {loading ? (
         <div className="text-center py-8">データを読み込み中...</div>
@@ -578,7 +634,7 @@ const formatAvailabilityDate = (availability: any) => {
 
                      {/* メッセージステータス - アイコンとテキスト */}
                      <div className="flex items-center mt-2">
-                      <div className={`w-[16px] h-[16px] rounded-full flex items-center justify-center mr-1 ${getIconColor(message.type, activeTab === 'inbox', message)}`}>
+                      <div className={`w-[16px] h-[16px] rounded-full flex items-center justify-center mr-1 ${getIconColor(message.type, activeTab === 'inbox')}`}>
                         <span className="text-white text-xs ">{getMessageIcon(message.type, activeTab === 'inbox')}</span>
                       </div>
                       <div className="text-[#61717D] text-xs font-bold">

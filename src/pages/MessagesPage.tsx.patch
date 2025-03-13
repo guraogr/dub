@@ -1,0 +1,38 @@
+--- MessagesPage.tsx.orig
++++ MessagesPage.tsx
+@@ -186,12 +186,19 @@
+         if (data) {
+           const filteredData = data.filter(message => {
+-            // 誘いタイプで、対応する招待IDが応答済みリストにある場合は非表示
+-            if ((message.type === 'invitation' || message.type === 'invitation_pending') && 
++            // invitation_pendingタイプは常に表示する
++            if (message.type === 'invitation_pending') {
++              console.log('invitation_pendingタイプのメッセージを表示:', message);
++              return true;
++            }
++            
++            // 他の誘いタイプで、対応する招待IDが応答済みリストにある場合は非表示
++            if (message.type === 'invitation' && 
+                 message.invitation_id && 
+                 respondedInvitationIds.includes(message.invitation_id)) {
+               console.log('応答済みのため非表示:', message);
+               return false;
+             }
+@@ -247,12 +254,19 @@
+         if (data) {
+           const filteredData = data.filter(message => {
+-            // 誘いタイプで、対応する招待IDが応答済みリストにある場合は非表示
+-            if ((message.type === 'invitation' || message.type === 'invitation_pending') && 
++            // invitation_pendingタイプは常に表示する
++            if (message.type === 'invitation_pending') {
++              console.log('invitation_pendingタイプのメッセージを表示:', message);
++              return true;
++            }
++            
++            // 他の誘いタイプで、対応する招待IDが応答済みリストにある場合は非表示
++            if (message.type === 'invitation' && 
+                 message.invitation_id && 
+                 respondedInvitationIds.includes(message.invitation_id)) {
+               console.log('応答済みのため非表示:', message);
+               return false;
+             }

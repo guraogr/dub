@@ -355,7 +355,7 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
             availabilities.map(availability => (
               <div 
                 key={availability.id}
-                className="flex flex-wrap items-center px-4 py-5 bg-white cursor-pointer hover:bg-gray-50 w-full border-b border-gray-100"
+                className="flex items-center px-4 py-5 bg-white cursor-pointer hover:bg-gray-50 w-full border-b border-gray-100"
                 onClick={() => handleUserSelect({
                   id: availability.user?.id || availability.user_id,
                   name: availability.user?.name || '名前なし',
@@ -373,14 +373,13 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
                     />
                   )}
                 </div>
-                <div className="flex-grow min-w-0 mr-2">
-                  <div className="font-medium truncate">{availability.user?.name || '名前なし'}</div>
-                  <div className="text-sm text-gray-500 truncate">{availability.comment || ''}</div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <div className="whitespace-nowrap">{`${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`}</div>
-                  <div className="text-xs text-gray-500">
-                    登録日: {availability.date && new Date(availability.date).toLocaleDateString('ja-JP')}
+                <div className="w-full">
+                  <div className="flex-grow min-w-0 mr-2 flex justify-between">
+                    <div className="font-bold truncate">{availability.user?.name || '名前なし'}</div>
+                    <div className="whitespace-nowrap">{`${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`}</div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <div className="text-sm text-gray-500 truncate">{availability.comment || ''}</div>
                   </div>
                 </div>
               </div>
