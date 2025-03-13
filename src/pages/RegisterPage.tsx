@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import Input from '../components/Input';
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -55,66 +56,53 @@ const RegisterPage: React.FC = () => {
         )}
         
         <form onSubmit={handleRegister} className="space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              名前
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none"
-            />
-          </div>
+          <Input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            label="名前"
+            placeholder="名前を入力"
+          />
           
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              メールアドレス
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none"
-            />
-          </div>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            label="メールアドレス"
+            placeholder="メールアドレスを入力"
+          />
           
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              パスワード
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none"
-            />
-          </div>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            label="パスワード"
+            placeholder="パスワードを入力"
+          />
           
           <div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 appearance-none"
+              className="w-full px-4 py-2 text-white bg-orange-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 appearance-none"
               style={{
                 WebkitAppearance: 'none',
                 appearance: 'none',
-                backgroundColor: '#3b82f6',
                 color: 'white',
                 border: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.375rem',
                 cursor: 'pointer',
                 fontWeight: '500',
                 display: 'block',
-                width: '100%'
+                width: '100%',
+                borderRadius: '300px',
+                padding: "16px 0",
               }}
             >
               {loading ? '登録中...' : '登録する'}

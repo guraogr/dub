@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import BottomNavigation from '../components/BottomNavigation';
+import Input from '../components/Input';
 
 const ProfilePage = () => {
   const [name, setName] = useState('');
@@ -144,20 +145,15 @@ const ProfilePage = () => {
         </div>
         
         {/* 名前 */}
-        <div className="mb-6">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            名前
-          </label>
-          <input
-            id="name"
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-            placeholder="名前を入力"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
-          />
-        </div>
+        <Input
+          id="name"
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          required
+          placeholder="名前を入力"
+          label="名前"
+        />
         
         {/* 更新ボタン */}
         <div className="mt-8">

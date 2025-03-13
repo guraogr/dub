@@ -22,8 +22,8 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
   if (!isOpen || !message) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white rounded-full p-6 w-80 max-w-md relative">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+      <div className="bg-white p-6 w-80 max-w-md relative rounded-2xl">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
@@ -35,7 +35,7 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
         </h3>
         
         <div className="flex items-center mb-4">
-          <div className="w-12 h-12 bg-gray-300 rounded-full mr-4">
+          <div className="w-15 h-15 bg-gray-300 rounded-full mr-4">
             {(message.sender?.avatarurl || message.sender?.avatar_url) && (
               <img 
                 src={message.sender.avatarurl || message.sender.avatar_url} 
@@ -46,12 +46,12 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
           </div>
           <div>
             <div className="font-medium">{message.sender?.name}</div>
-            <div className="text-sm text-gray-600">{message.comment || 'コメントなし'}</div>
             <div className="text-sm">
               {message.time && message.time !== 'undefined ~ undefined' 
                 ? message.time 
                 : '時間情報なし'}
             </div>
+            <div className="text-sm text-gray-600">{message.comment || 'コメントなし'}</div>
           </div>
         </div>
         

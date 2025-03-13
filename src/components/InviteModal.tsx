@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface InviteModalProps {
   user: {
@@ -6,6 +6,7 @@ interface InviteModalProps {
     name: string;
     comment: string;
     time: string;
+    avatarurl?: string; 
   };
   isOpen: boolean;
   onClose: () => void;
@@ -13,15 +14,30 @@ interface InviteModalProps {
 }
 
 const InviteModal: React.FC<InviteModalProps> = ({ user, isOpen, onClose, onInvite }) => {
+  const [imageError, setImageError] = useState(false);
+  
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white rounded-full p-6 w-80 max-w-md">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+      <div className="bg-white p-6 w-80 max-w-md rounded-2xl">
         <h3 className="text-lg font-medium mb-4">遊びに誘いますか？</h3>
-        
         <div className="flex items-center mb-4">
-          <div className="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
+          {user.avatarurl && !imageError ? (
+            <img 
+              src={user.avatarurl} 
+              alt={`${user.name}のアバター`} 
+              className="w-12 h-12 rounded-full mr-4 object-cover"
+              onError={() => setImageError(true)}
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-12 h-12 bg-gray-300 rounded-full mr-4 flex items-center justify-center">
+              <span className="text-gray-500 text-lg font-medium">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
           <div>
             <div className="font-medium">{user.name}</div>
             <div className="text-sm text-gray-500">{user.comment}</div>
@@ -39,7 +55,8 @@ const InviteModal: React.FC<InviteModalProps> = ({ user, isOpen, onClose, onInvi
           <button
             onClick={onInvite}
             className="px-4 py-2 bg-yellow-400 text-black rounded-full hover:bg-yellow-500"
-          >
+            style={{borderRadius: 100, }}
+            >
             遊びに誘う
           </button>
         </div>

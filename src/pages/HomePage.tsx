@@ -348,14 +348,14 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
       
       {/* 予定一覧 - 画面幅に収まるようにする */}
       <div className="max-w-4xl mx-auto px-4">
-        <div className="space-y-4 w-full">
+        <div className="w-full">
           {availabilities.length === 0 ? (
             <div className="text-center py-8 text-gray-500">予定が見つかりません</div>
           ) : (
             availabilities.map(availability => (
               <div 
                 key={availability.id}
-                className="flex flex-wrap items-center p-4 bg-white rounded-full shadow cursor-pointer hover:bg-gray-50 w-full"
+                className="flex flex-wrap items-center px-4 py-5 bg-white cursor-pointer hover:bg-gray-50 w-full border-b border-gray-100"
                 onClick={() => handleUserSelect({
                   id: availability.user?.id || availability.user_id,
                   name: availability.user?.name || '名前なし',
@@ -364,7 +364,7 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
                   availabilityId: availability.id
                 })}
               >
-                <div className="w-12 h-12 bg-gray-300 rounded-full mr-4 flex-shrink-0">
+                <div className="w-16 h-16 bg-gray-300 rounded-full mr-4 flex-shrink-0">
                   {availability.user?.avatar_url && (
                     <img 
                       src={availability.user.avatar_url} 
@@ -380,7 +380,7 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
                 <div className="text-right flex-shrink-0">
                   <div className="whitespace-nowrap">{`${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`}</div>
                   <div className="text-xs text-gray-500">
-                    {availability.date && new Date(availability.date).toLocaleDateString('ja-JP')}
+                    登録日: {availability.date && new Date(availability.date).toLocaleDateString('ja-JP')}
                   </div>
                 </div>
               </div>
