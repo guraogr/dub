@@ -36,7 +36,6 @@ const UserInfo: React.FC<{
       />
       <div className="ml-4">
         <div className="font-medium">{name}</div>
-        <div className="text-sm">{timeInfo}</div>
       </div>
     </div>
     

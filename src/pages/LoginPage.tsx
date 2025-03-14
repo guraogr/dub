@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import Input from '../components/Input';
 import Button from '../components/ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,7 +24,7 @@ const LoginPage: React.FC = () => {
 
       if (error) throw error;
       // ログイン成功したらメインページへリダイレクト
-      window.location.href = '/';
+      navigate('/');
     } catch (error: any) {
       setMessage(error.message || 'ログインに失敗しました');
     } finally {
@@ -84,5 +86,6 @@ const LoginPage: React.FC = () => {
     </div>
   );
 };
+
 
 export default LoginPage;

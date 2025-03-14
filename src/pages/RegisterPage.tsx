@@ -1,46 +1,81 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import Input from '../components/Input';
-import Button from '../components/ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterPage: React.FC = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  // 会員登録処理
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 入力チェック
+    if (!name || !email || !password) {
+      setMessage('すべての項目を入力してください');
+      return;
+    }
+    
+    // ローディング開始
     setLoading(true);
     setMessage('');
   
     try {
-      // Supabaseに新しいユーザーを登録
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      // 1. Supabaseにユーザー登録を行う
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name: name, // ユーザーメタデータに名前を保存
+          },
+        },
       });
       
-      if (signUpError) throw signUpError;
-  
-      // ユーザープロフィール情報をusersテーブルに保存
-      if (authData && authData.user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([{ 
-            id: authData.user.id, 
-            email: email, 
-            name: name 
-          }]);
-        
-        if (profileError) throw profileError;
+      if (error) {
+        throw error;
       }
-  
-      setMessage('登録が完了しました！メールを確認してください。');
+      
+      if (!data || !data.user) {
+        throw new Error('ユーザー登録に失敗しました');
+      }
+      
+      // 2. ユーザープロフィール情報をusersテーブルに保存
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert([{ 
+          id: data.user.id, 
+          email: email, 
+          name: name 
+        }]);
+      
+      if (profileError) {
+        console.error('プロフィール作成エラー:', profileError);
+        // プロフィール作成エラーはユーザーに表示するが、登録自体は完了しているのでエラーとして扱わない
+      }
+      
+      // 3. 成功メッセージを表示
+      setMessage('登録が完了しました！メールアドレスの確認メールを確認してください。メール内のリンクをクリックしてアカウントを有効化してください。');
+      
+      // メール確認後のログインのためのリスナーを設定
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          // メール確認後にログインしたらホームページに遷移
+          navigate('/');
+        }
+      });
+      
     } catch (error: any) {
+      // エラーメッセージを表示
+      console.error('登録エラー:', error);
       setMessage(error.message || '登録に失敗しました');
     } finally {
+      // ローディング終了
       setLoading(false);
     }
   };
@@ -51,7 +86,7 @@ const RegisterPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-center">会員登録</h1>
         
         {message && (
-          <div className={`p-3 text-sm rounded ${message.includes('完了') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          <div className={`p-3 text-sm rounded ${message.includes('完了') || message.includes('確認') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
             {message}
           </div>
         )}
@@ -89,16 +124,27 @@ const RegisterPage: React.FC = () => {
           />
           
           <div>
-            <Button
+            <button
               type="submit"
               disabled={loading}
-              variant="primary"
-              fullWidth
-              className="py-4"
-
+              className="w-full px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 rounded-full"
+              style={{
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                appearance: 'none',
+                backgroundColor: '#f97316', /* orange-500の16進数カラーコード */
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: '500',
+                display: 'block',
+                width: '100%',
+                borderRadius: '300px',
+                padding: "16px 0",
+              }}
             >
               {loading ? '登録中...' : '登録する'}
-            </Button>
+            </button>
           </div>
           
           <div className="text-center">
