@@ -361,7 +361,8 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
                   name: availability.user?.name || '名前なし',
                   comment: availability.comment || '',
                   time: `${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`,
-                  availabilityId: availability.id
+                  availabilityId: availability.id,
+                  avatar_url: availability.user?.avatar_url || ''
                 })}
               >
                 <div className="w-16 h-16 bg-gray-300 rounded-full mr-4 flex-shrink-0">

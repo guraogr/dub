@@ -6,7 +6,7 @@ interface InviteModalProps {
     name: string;
     comment: string;
     time: string;
-    avatarurl?: string; 
+    avatar_url?: string; 
   };
   isOpen: boolean;
   onClose: () => void;
@@ -23,11 +23,11 @@ const InviteModal: React.FC<InviteModalProps> = ({ user, isOpen, onClose, onInvi
       <div className="bg-white p-6 w-80 max-w-md rounded-2xl">
         <h3 className="text-lg font-medium mb-4">遊びに誘いますか？</h3>
         <div className="flex items-center mb-4">
-          {user.avatarurl && !imageError ? (
+          {user.avatar_url && !imageError ? (
             <img 
-              src={user.avatarurl} 
+              src={user.avatar_url} 
               alt={`${user.name}のアバター`} 
-              className="w-12 h-12 rounded-full mr-4 object-cover"
+              className="w-15 h-15 rounded-full mr-4 object-cover"
               onError={() => setImageError(true)}
               loading="lazy"
             />
