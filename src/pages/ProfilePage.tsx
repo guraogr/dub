@@ -11,6 +11,8 @@ const ProfilePage = () => {
   const [name, setName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -20,11 +22,15 @@ const ProfilePage = () => {
     if (profile) {
       setName(profile.name || '');
       setAvatarUrl(profile.avatar_url || '');
+      // プレビューがない場合はプロフィール画像を表示
+      if (!previewUrl) {
+        setPreviewUrl(null);
+      }
     } else if (user?.user_metadata?.name) {
       // プロフィールがない場合はメタデータから名前を取得
       setName(user.user_metadata.name);
     }
-  }, [profile, user]);
+  }, [profile, user, previewUrl]);
   
   // 認証状態に基づいてリダイレクト
   useEffect(() => {
@@ -38,6 +44,15 @@ const ProfilePage = () => {
     e.preventDefault();
     
     if (!user) return;
+    
+    // 画像サイズの再チェック
+    if (avatarFile) {
+      const fileSizeInMB = avatarFile.size / (1024 * 1024);
+      if (fileSizeInMB > 2) {
+        setError('画像サイズが大きすぎます。2MB以下の画像を選択してください。');
+        return;
+      }
+    }
     
     setLoading(true);
     setError('');
@@ -81,6 +96,10 @@ const ProfilePage = () => {
       // コンテキスト内のプロフィール情報を更新
       await refreshProfile();
       
+      // プレビューをクリア
+      setPreviewUrl(null);
+      setAvatarFile(null);
+      
       // 成功メッセージを表示
       alert('プロフィールを更新しました！');
       navigate('/');
@@ -105,7 +124,20 @@ const ProfilePage = () => {
         {/* プロフィール画像 */}
         <div className="flex flex-col items-center mt-6 mb-8">
           <div className="w-32 h-32 bg-gray-200 rounded-full mb-3 overflow-hidden">
-            {avatarUrl ? (
+            {imageLoading ? (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <svg className="animate-spin h-8 w-8 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+            ) : previewUrl ? (
+              <img 
+                src={previewUrl} 
+                alt="プレビュー" 
+                className="w-full h-full object-cover"
+              />
+            ) : avatarUrl ? (
               <img 
                 src={avatarUrl} 
                 alt="プロフィール" 
@@ -127,7 +159,34 @@ const ProfilePage = () => {
               className="hidden"
               onChange={e => {
                 if (e.target.files && e.target.files[0]) {
-                  setAvatarFile(e.target.files[0]);
+                  const file = e.target.files[0];
+                  const fileSizeInMB = file.size / (1024 * 1024);
+                  
+                  // ファイルサイズチェック (2MB以下のみ許可)
+                  if (fileSizeInMB > 2) {
+                    setError('画像サイズが大きすぎます。2MB以下の画像を選択してください。');
+                    // ファイル入力をリセット
+                    e.target.value = '';
+                    return;
+                  }
+                  
+                  // エラーをクリア
+                  setError('');
+                  setAvatarFile(file);
+                  setImageLoading(true);
+                  
+                  // ファイルを読み込んでプレビュー用URLを生成
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setPreviewUrl(reader.result as string);
+                    setImageLoading(false);
+                  };
+                  reader.onerror = () => {
+                    console.error('画像の読み込みに失敗しました');
+                    setImageLoading(false);
+                    setError('画像の読み込みに失敗しました。別の画像をお試しください。');
+                  };
+                  reader.readAsDataURL(file);
                 }
               }}
             />
