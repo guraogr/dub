@@ -330,8 +330,8 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
     <div className="py-8">
       {/* 日付選択部分 - 左右にはみ出しても良い */}
       <div className="w-full mb-4">
-        <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="flex space-x-2 pb-2 px-4" style={{ scrollbarWidth: 'none' }}>
+        <div className="scroll_hide overflow-x-auto">
+          <div className="flex space-x-2 pb-2 px-4">
             {dateList.map((date, index) => {
               // 曜日の色を設定する関数
               const getWeekdayColor = (date: Date) => {
