@@ -16,30 +16,55 @@ const ProfilePage = () => {
   // ユーザー情報の取得
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-      
-      setUser(user);
-      
-      // プロフィール情報の取得
-      const { data, error } = await supabase
-        .from('users')
-        .select('name, avatar_url')
-        .eq('id', user.id)
-        .single();
+      try {
+        // 現在の認証ユーザーを取得
+        const { data: { user } } = await supabase.auth.getUser();
         
-      if (error) {
-        console.error('プロフィール情報の取得に失敗しました', error);
-        return;
-      }
-      
-      if (data) {
-        setName(data.name || '');
-        setAvatarUrl(data.avatar_url || '');
+        if (!user) {
+          navigate('/login');
+          return;
+        }
+        
+        // ユーザーメタデータから名前を取得
+        const userName = user.user_metadata?.name || '';
+        setUser(user);
+        setName(userName); // メタデータから名前を設定
+        
+        // プロフィール情報の取得を試みる
+        const { data, error } = await supabase
+          .from('users')
+          .select('name, avatar_url')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          // プロフィール情報がない場合、新しく作成する
+          if (error.code === 'PGRST116') { // 「The result contains 0 rows」エラー
+            console.log('プロフィール情報が見つからないため、新規作成します');
+            
+            // プロフィール情報を作成
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert([{ 
+                id: user.id, 
+                name: userName,
+                email: user.email
+              }]);
+              
+            if (insertError) {
+              console.error('プロフィール情報の作成に失敗しました', insertError);
+            }
+          } else {
+            console.error('プロフィール情報の取得に失敗しました', error);
+          }
+        } else if (data) {
+          // プロフィール情報が存在する場合、そちらの情報を優先
+          setName(data.name || userName);
+          setAvatarUrl(data.avatar_url || '');
+        }
+      } catch (error) {
+        console.error('ユーザー情報の取得中にエラーが発生しました', error);
+        setError('プロフィール情報の取得に失敗しました');
       }
     };
     
@@ -148,7 +173,7 @@ const ProfilePage = () => {
         <Input
           id="name"
           type="text"
-          value={name}
+          value={user?.name || name}
           onChange={e => setName(e.target.value)}
           required
           placeholder="名前を入力"
