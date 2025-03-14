@@ -22,14 +22,14 @@ const Input: React.FC<InputProps> = ({
       )}
       <input
         id={id}
-        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none ${className || ''}`}
+        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none bg-white ${className || ''}`}
         style={{
           WebkitAppearance: 'none',
           MozAppearance: 'none',
           appearance: 'none',
           fontSize: '1rem',
           lineHeight: '1.5rem',
-          backgroundColor: '#ffffff',
+          backgroundColor: '#ffffff !important', // 背景色を白に統一し、優先度を上げる
           borderRadius: '0.5rem',
           borderWidth: '1px',
           borderStyle: 'solid',

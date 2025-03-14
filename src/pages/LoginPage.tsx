@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import Input from '../components/Input';
 import Button from '../components/ui/Button';
@@ -50,6 +50,7 @@ const LoginPage: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="new-email"
             label="メールアドレス"
             placeholder="メールアドレスを入力"
           />
@@ -60,6 +61,7 @@ const LoginPage: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="new-password"
             label="パスワード"
             placeholder="パスワードを入力"
           />

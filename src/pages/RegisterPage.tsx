@@ -101,28 +101,25 @@ const RegisterPage: React.FC = () => {
             label="名前"
             placeholder="名前を入力"
           />
-          
           <Input
-            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="new-email"
             label="メールアドレス"
             placeholder="メールアドレスを入力"
           />
-          
           <Input
-            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="new-password"
             minLength={6}
             label="パスワード"
             placeholder="パスワードを入力"
           />
-          
           <div>
             <button
               type="submit"
