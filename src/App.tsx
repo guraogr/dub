@@ -32,7 +32,8 @@ function App() {
     });
 
     // 認証状態の変化を監視
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // _eventとしてパラメータ名を変更してリントエラーを回避
       setSession(session);
       setLoading(false);
     });

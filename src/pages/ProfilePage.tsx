@@ -1,75 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useSupabase } from '../contexts/SupabaseContext';
 import BottomNavigation from '../components/BottomNavigation';
 import Input from '../components/Input';
 
 const ProfilePage = () => {
+  // Supabaseコンテキストから認証情報とプロフィール情報を取得
+  const { user, profile, loading: authLoading, refreshProfile } = useSupabase();
   const [name, setName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // ユーザー情報の取得
+  // プロフィール情報が変更されたときに状態を更新
   useEffect(() => {
-    const getUser = async () => {
-      try {
-        // 現在の認証ユーザーを取得
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          navigate('/login');
-          return;
-        }
-        
-        // ユーザーメタデータから名前を取得
-        const userName = user.user_metadata?.name || '';
-        setUser(user);
-        setName(userName); // メタデータから名前を設定
-        
-        // プロフィール情報の取得を試みる
-        const { data, error } = await supabase
-          .from('users')
-          .select('name, avatar_url')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          // プロフィール情報がない場合、新しく作成する
-          if (error.code === 'PGRST116') { // 「The result contains 0 rows」エラー
-            console.log('プロフィール情報が見つからないため、新規作成します');
-            
-            // プロフィール情報を作成
-            const { error: insertError } = await supabase
-              .from('users')
-              .insert([{ 
-                id: user.id, 
-                name: userName,
-                email: user.email
-              }]);
-              
-            if (insertError) {
-              console.error('プロフィール情報の作成に失敗しました', insertError);
-            }
-          } else {
-            console.error('プロフィール情報の取得に失敗しました', error);
-          }
-        } else if (data) {
-          // プロフィール情報が存在する場合、そちらの情報を優先
-          setName(data.name || userName);
-          setAvatarUrl(data.avatar_url || '');
-        }
-      } catch (error) {
-        console.error('ユーザー情報の取得中にエラーが発生しました', error);
-        setError('プロフィール情報の取得に失敗しました');
-      }
-    };
-    
-    getUser();
-  }, [navigate]);
+    if (profile) {
+      setName(profile.name || '');
+      setAvatarUrl(profile.avatar_url || '');
+    } else if (user?.user_metadata?.name) {
+      // プロフィールがない場合はメタデータから名前を取得
+      setName(user.user_metadata.name);
+    }
+  }, [profile, user]);
+  
+  // 認証状態に基づいてリダイレクト
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login');
+    }
+  }, [authLoading, user, navigate]);
 
   // プロフィール更新
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,6 +77,9 @@ const ProfilePage = () => {
         .eq('id', user.id);
         
       if (error) throw error;
+      
+      // コンテキスト内のプロフィール情報を更新
+      await refreshProfile();
       
       // 成功メッセージを表示
       alert('プロフィールを更新しました！');
@@ -173,7 +138,7 @@ const ProfilePage = () => {
         <Input
           id="name"
           type="text"
-          value={user?.name || name}
+          value={name}
           onChange={e => setName(e.target.value)}
           required
           placeholder="名前を入力"
