@@ -11,6 +11,7 @@ interface NotificationModalProps {
 
 const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onClose }) => {
   const navigate = useNavigate();
+
   
   // 日付フォーマット関数は外部ユーティリティからインポート
   
@@ -130,7 +131,10 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onC
   };
   
   // 承諾処理
-  const handleAccept = () => handleInvitationResponse('accepted');
+  const handleAccept = () => {
+    handleInvitationResponse('accepted')
+    navigate(`/appointment-completed/${notification.invitation_id}`);
+  };
   
   // 拒否処理
   const handleReject = () => handleInvitationResponse('rejected');

@@ -27,7 +27,8 @@ export const useMessagesPage = () => {
     setActiveTab,
     fetchMessages,
     handleResponseToInvitation,
-    createEnhancedMessage
+    createEnhancedMessage,
+    userId // 現在のユーザーIDを取得
   } = useMessages();
 
   // ユーザーの認証状態を確認
@@ -53,18 +54,13 @@ export const useMessagesPage = () => {
 
   // メッセージをクリックしたときの処理
   const handleMessageClick = useCallback((message: ExtendedMessageType) => {
-    // 未読の誘いメッセージの場合、モーダルを表示
-    if (activeTab === 'inbox' && 
-        message.type === 'invitation' && 
-        message.invitation?.status === 'pending') {
-      
-      // 拡張メッセージを作成してモーダルに表示
-      const enhancedMessage = createEnhancedMessage(message);
-      
-      setSelectedMessage(enhancedMessage);
-      setModalOpen(true);
-    }
-  }, [activeTab, createEnhancedMessage]);
+    // すべてのメッセージタイプに対応
+    // 拡張メッセージを作成してモーダルに表示
+    const enhancedMessage = createEnhancedMessage(message);
+    
+    setSelectedMessage(enhancedMessage);
+    setModalOpen(true);
+  }, [createEnhancedMessage]);
 
   // タブ切り替え
   const handleTabChange = useCallback((tab: 'inbox' | 'sent') => {
@@ -108,6 +104,7 @@ export const useMessagesPage = () => {
     handleTabChange,
     closeModal,
     acceptInvitation,
-    rejectInvitation
+    rejectInvitation,
+    userId // 現在のユーザーIDを返す
   };
 };

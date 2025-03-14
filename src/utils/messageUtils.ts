@@ -5,37 +5,60 @@ import { ExtendedMessageType } from '../types';
  * メッセージのステータステキストを取得する
  * @param message メッセージオブジェクト
  * @param isInbox 受信箱かどうか
+ * @param currentUserId 現在のユーザーID
  * @returns ステータステキスト
  */
-export const getStatusText = (message: ExtendedMessageType, isInbox: boolean): string => {
+export const getStatusText = (message: ExtendedMessageType, isInbox: boolean, currentUserId?: string): string => {
+  // PART1: スカウトを送る/スカウトが届く
+  // PART2: スカウトに応答する
+  // PART3: スカウトの返事が届く
+  
   if (isInbox) {
     // 受信箱のステータス文言
-    switch (message.type) {
-      case 'invitation':
-        // invitationタイプの場合、招待のステータスによって表示を変える
-        if (message.invitation?.status === 'pending') {
-          return '遊びの誘いが届きました';
-        } else if (message.invitation?.status === 'accepted') {
-          return '誘いが承認されました';
-        } else {
-          return '遊びの誘いが届きました';
+    if (message.type === 'invitation') {
+      // 招待タイプの場合、ステータスによって表示を変える
+      if (message.invitation?.status === 'pending') {
+        // 2. [受信箱]遊びの誘いが届きました（相手が自分の遊びの募集にスカウトを送る）
+        return '遊びの誘いが届きました';
+      } else if (message.invitation?.status === 'accepted') {
+        // 1. [受信箱] 誘いが承諾されました
+        // 自分が招待を送った場合のみ表示する
+        // 自分が送信者の場合は、自分が招待を送った場合
+        if (currentUserId && message.sender_id === currentUserId) {
+          return '誘いが承諾されました';
         }
-      case 'rejection':
-        return '相手の予定が埋まってしまいました';
-      default:
-        return message.content || '';
+        return '';
+      } else if (message.invitation?.status === 'rejected') {
+        // 2. [受信箱] 相手の予定が埋まってしまいました
+        // 自分が招待を送った場合のみ表示する
+        // 自分が送信者の場合は、自分が招待を送った場合
+        if (currentUserId && message.sender_id === currentUserId) {
+          return '相手の予定が埋まってしまいました';
+        }
+        return '';
+      }
     }
+    
+    // デフォルトの場合はメッセージ内容を表示
+    return message.content || '';
   } else {
     // 送信箱のステータス文言
-    switch (message.type) {
-      case 'invitation':
-        // 送信箱の場合は常に「スカウト送信済み」と表示
+    if (message.type === 'invitation') {
+      // 招待タイプの場合、ステータスによって表示を変える
+      if (message.invitation?.status === 'pending') {
+        // 1. [送信箱]スカウト送信済み（自分が相手の遊び募集にスカウトを送る）
         return 'スカウト送信済み';
-      case 'rejection':
+      } else if (message.invitation?.status === 'accepted') {
+        // 1. [送信箱]遊びの誘いを承諾しました（相手が送ってきたスカウトに対して、自分が承諾ボタンをおす）
+        return '遊びの誘いを承諾しました';
+      } else if (message.invitation?.status === 'rejected') {
+        // 2. [送信箱]遊びの誘いをお断りしました（相手が送ってきたスカウトに対して、自分が拒否ボタンをおした場合）
         return '遊びの誘いをお断りしました';
-      default:
-        return message.content || '';
+      }
     }
+    
+    // デフォルトの場合はメッセージ内容を表示
+    return message.content || '';
   }
 };
 

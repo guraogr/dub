@@ -7,6 +7,7 @@ interface MessageListProps {
   activeTab: 'inbox' | 'sent';
   loading: boolean;
   onMessageClick: (message: ExtendedMessageType) => void;
+  userId?: string; // 現在のユーザーIDを追加
 }
 
 /**
@@ -17,7 +18,8 @@ const MessageList: React.FC<MessageListProps> = ({
   messages,
   activeTab,
   loading,
-  onMessageClick
+  onMessageClick,
+  userId // 現在のユーザーIDを受け取る
 }) => {
   // アイコンの背景色を取得
   const getIconColor = (type: string, isInbox: boolean) => {
@@ -25,7 +27,7 @@ const MessageList: React.FC<MessageListProps> = ({
     if (isInbox) {
       switch (type) {
         case 'invitation':
-          return 'bg-green-500'; // 緑色
+          return 'bg-yellow-500'; // 黄色に変更
         case 'invitation_pending':
           return 'bg-yellow-500'; // 黄色
         case 'rejection':
@@ -38,7 +40,7 @@ const MessageList: React.FC<MessageListProps> = ({
     else {
       switch (type) {
         case 'invitation':
-          return 'bg-green-500'; // 緑色
+          return 'bg-yellow-500'; // 黄色に変更
         case 'invitation_pending':
           return 'bg-yellow-500'; // 黄色
         case 'rejection':
@@ -48,27 +50,7 @@ const MessageList: React.FC<MessageListProps> = ({
       }
     }
   };
-  
-  // 日付のフォーマット（例：3/25(火)）
-  const formatDateWithDay = (dateStr: string) => {
-    if (!dateStr) return '';
-    
-    const date = new Date(dateStr);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    
-    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
-    
-    return `${month}/${day}(${dayOfWeek})`;
-  };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
 
   if (messages.length === 0) {
     return (
@@ -84,11 +66,7 @@ const MessageList: React.FC<MessageListProps> = ({
         <div 
           key={message.id}
           className="relative bg-white cursor-pointer px-4 py-6 border-b border-gray-100"
-          onClick={() => {
-            if (message.type === 'invitation' && message.invitation?.status === 'pending') {
-              onMessageClick(message);
-            }
-          }}
+          onClick={() => onMessageClick(message)}
         >
           <div className="flex items-center">
             {/* 左側：アバター画像 */}
@@ -126,30 +104,22 @@ const MessageList: React.FC<MessageListProps> = ({
                 
                 {/* 右側：時間情報 */}
                 <div className="flex flex-col items-end">
-                  <div className="text-gray-500 text-base">
-                    {message.invitation?.availability && (
-                      <div className="text-gray-500 mt-1 text-sm relative">
-                        {message.invitation.availability.date && (
-                          <div className="text-gray-500 mt-1 text-sm">
-                            {`${formatDateWithDay(message.invitation.availability.date)} ${message.invitation.availability.start_time?.slice(0, 5)}～${message.invitation.availability.end_time?.slice(0, 5)}`}
-                          </div>
-                        )}
-                        <div className="absolute right-[6px] top-[8px] w-3 h-3 bg-orange-500 rounded-full mt-4"></div>
-                      </div>
-                    )}
-                  </div>
+                    <div className="text-gray-500 mt-1 text-sm">
+                    {new Intl.DateTimeFormat('ja-JP', {month: 'numeric', day: 'numeric', weekday: 'short', hour: 'numeric', minute: 'numeric' }).format(new Date(message.created_at))}
+                    </div>
                 </div>
               </div>
 
               {/* メッセージステータス - アイコンとテキスト */}
-              <div className="flex items-center mt-2">
-                <div className={`w-[16px] h-[16px] rounded-full flex items-center justify-center mr-1 ${getIconColor(message.type, activeTab === 'inbox')}`}>
+              <div className="flex items-start mt-2">
+                <div className={`w-[17px] h-[16px] rounded-full flex items-center justify-center mr-1 ${getIconColor(message.type, activeTab === 'inbox')}`}>
                   <span className="text-white text-xs">{getMessageIcon(message.type, activeTab === 'inbox')}</span>
                 </div>
-                <div className="text-[#61717D] text-xs font-bold">
-                  {getStatusText(message, activeTab === 'inbox')}
+                <div className="text-[#61717D] text-sm font-bold w-full">
+                  {getStatusText(message, activeTab === 'inbox', userId)}
                 </div>
               </div>
+              
             </div>
           </div>
         </div>

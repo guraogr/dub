@@ -105,8 +105,8 @@ export const useMessages = () => {
         supabase, 
         messageId, 
         invitationId, 
-        status, 
-        currentUserId
+        status
+        // currentUserIdパラメータは不要になったため削除
       );
       
       if (success) {
@@ -136,6 +136,7 @@ export const useMessages = () => {
     fetchMessages,
     markAsRead,
     handleResponseToInvitation,
-    createEnhancedMessage
+    createEnhancedMessage,
+    userId // 現在のユーザーIDを返す
   };
 };

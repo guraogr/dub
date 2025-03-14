@@ -30,7 +30,7 @@ input {
 [data-sonner-toast] [data-content] {
   color: white ;
   font-size: 13px ;
-  font-family: 'Hiragino Kaku Gothic Pro', sans-serif ;
+  font-family: 'Hiragino Kaku Gothic Pro', sans-serif;
   font-weight: 600 ;
   line-height: 18px ;
   word-wrap: break-word ;
@@ -183,19 +183,6 @@ button {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
 
 /* iPhoneのセーフエリア対応 */

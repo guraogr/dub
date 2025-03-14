@@ -104,6 +104,7 @@ const AppointmentCompletedPage = () => {
           <button
             onClick={openLine}
             className="w-full py-3 bg-green-500 text-white rounded-full mb-3 flex items-center justify-center"
+            style={{ borderRadius: 1000,padding: '16px 0' }}
           >
             LINE アプリを開く
           </button>
@@ -111,18 +112,20 @@ const AppointmentCompletedPage = () => {
           <button
             onClick={openInstagram}
             className="w-full py-3 border border-blue-500 text-blue-500 rounded-full mb-6 flex items-center justify-center"
+            style={{ borderRadius: 1000,padding: '16px 0', border: "1px solid #0096F4" }}
           >
             Instagram を開く
           </button>
+          <hr className="my-6 border-gray-300" />
         </>
       )}
-      
+
       <button
         onClick={() => navigate('/')}
-        className="w-full text-gray-600  bg-orange-500 text-white"
+        className="w-full text-gray-600  bg-white text-gray-500"
         style={{ borderRadius: 1000,padding: '16px 0' }}
       >
-        ホームに戻る
+        閉じる
       </button>
     </div>
   );

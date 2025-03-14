@@ -9,6 +9,19 @@ import { ExtendedMessageType, MessageType } from '../types';
  * メッセージに時間情報を追加する
  */
 export const enhanceMessagesWithTimeInfo = (messages: MessageType[]): ExtendedMessageType[] => {
+  // 日付をフォーマットする関数
+  const formatDateWithDay = (dateStr: string) => {
+    if (!dateStr) return '';
+    
+    const date = new Date(dateStr);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    
+    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
+    
+    return `${month}/${day}(${dayOfWeek})`;
+  };
+
   return messages.map(message => {
     let time = '';
     let comment = '';
@@ -17,7 +30,8 @@ export const enhanceMessagesWithTimeInfo = (messages: MessageType[]): ExtendedMe
     if (message.invitation?.availability) {
       // @ts-ignore
       const { date, start_time, end_time } = message.invitation.availability;
-      time = `${date} ${start_time || ''} ~ ${end_time || ''}`;
+      const formattedDate = formatDateWithDay(date);
+      time = `${formattedDate} ${start_time?.slice(0, 5) || ''} ~ ${end_time?.slice(0, 5) || ''}`;
       // @ts-ignore
       comment = message.invitation.availability.comment || '';
     }
@@ -34,13 +48,30 @@ export const enhanceMessagesWithTimeInfo = (messages: MessageType[]): ExtendedMe
  * 招待メッセージから表示用の拡張メッセージを作成する
  */
 export const createEnhancedInvitationMessage = (message: ExtendedMessageType): ExtendedMessageType => {
-  // availability情報から時間を取得
+  // availability情報から日付と時間を取得
   let timeInfo = '';
   if (message.invitation?.availability) {
+    const date = message.invitation.availability.date;
     const startTime = message.invitation.availability.start_time?.slice(0, 5);
     const endTime = message.invitation.availability.end_time?.slice(0, 5);
+    
+    // 日付をフォーマットする関数
+    const formatDateWithDay = (dateStr: string) => {
+      if (!dateStr) return '';
+      
+      const date = new Date(dateStr);
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      
+      const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
+      
+      return `${month}/${day}(${dayOfWeek})`;
+    };
+    
+    const formattedDate = formatDateWithDay(date);
+    
     if (startTime && endTime) {
-      timeInfo = `${startTime} ~ ${endTime}`;
+      timeInfo = `${formattedDate} ${startTime} ~ ${endTime}`;
     }
   }
   

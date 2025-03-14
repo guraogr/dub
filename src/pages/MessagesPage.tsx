@@ -24,9 +24,11 @@ const MessagesPage: React.FC = () => {
     handleTabChange,
     closeModal,
     acceptInvitation,
-    rejectInvitation
+    rejectInvitation,
+    userId // 現在のユーザーIDを取得
   } = useMessagesPage();
 
+  console.log(messages)
   // タブオプションの定義
   const tabOptions = [
     { id: 'inbox', label: '受信箱' },
@@ -53,12 +55,14 @@ const MessagesPage: React.FC = () => {
         activeTab={activeTab}
         loading={loading}
         onMessageClick={handleMessageClick}
+        userId={userId || undefined} // 現在のユーザーIDを渡す、nullの場合はundefinedに変換
       />
       
       {/* 応答モーダルコンポーネント */}
       <ResponseModal
         message={selectedMessage}
         isOpen={modalOpen}
+        activeTab={activeTab}
         onClose={closeModal}
         onAccept={acceptInvitation}
         onReject={rejectInvitation}

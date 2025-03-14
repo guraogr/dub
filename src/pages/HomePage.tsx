@@ -128,6 +128,18 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
         // 選択された日付の予定を取得
         const targetDate = selectedDate || todayStr;
         
+        // ユーザーが既に送信した招待（スカウト）を取得
+        const { data: sentInvitations, error: invitationsError } = await supabase
+          .from('invitations')
+          .select('availability_id')
+          .eq('sender_id', user.id);
+          
+        if (invitationsError) throw invitationsError;
+        
+        // 既にスカウトを送った予定のIDリストを作成
+        const sentInvitationAvailabilityIds = sentInvitations.map((inv: any) => inv.availability_id);
+        console.log('既にスカウトを送った予定IDs:', sentInvitationAvailabilityIds);
+        
         // 予定を取得
         const { data, error } = await supabase
           .from('availabilities')
@@ -150,6 +162,12 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
           // 自分の予定は表示しない
           if (item.user_id === user.id) {
             console.log('自分の予定なので非表示:', item.id);
+            return false;
+          }
+          
+          // 既にスカウトを送った予定は表示しない
+          if (sentInvitationAvailabilityIds.includes(item.id)) {
+            console.log('既にスカウトを送った予定なので非表示:', item.id);
             return false;
           }
           
@@ -411,7 +429,7 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
                 </svg>
               </div>
             </div>
-            <div className="text-center justify-center text-white text-sm font-semibold font-['Inter'] leading-tight">予定を登録</div>
+            <div className="text-center justify-center text-white text-md font-semibold leading-tight">予定を登録</div>
             </button>
           </div>
         </div>

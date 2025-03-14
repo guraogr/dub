@@ -89,8 +89,8 @@ export const respondToInvitation = async (
   supabase: SupabaseClient,
   messageId: string, 
   invitationId: string, 
-  status: 'accepted' | 'rejected',
-  currentUserId: string
+  status: 'accepted' | 'rejected'
+  // currentUserId パラメータは不要になったため削除
 ): Promise<boolean> => {
   try {
     // invitationsテーブルのステータスを更新
@@ -115,40 +115,8 @@ export const respondToInvitation = async (
       throw messageError;
     }
     
-    // 元のメッセージ情報を取得
-    const { data: originalMessage } = await supabase
-      .from('messages')
-      .select(`
-        sender_id,
-        recipient_id,
-        content,
-        invitation_id
-      `)
-      .eq('id', messageId)
-      .single();
-    
-    if (originalMessage) {
-      // 自分から相手へのメッセージ作成（自分が送信者）
-      const senderMessage = status === 'accepted' 
-        ? '遊びの誘いを承諾しました' 
-        : '遊びの誘いをお断りしました';
-        
-      const { error: senderMsgError } = await supabase
-        .from('messages')
-        .insert({
-          sender_id: currentUserId, // 必ず自分のIDを送信者に
-          recipient_id: originalMessage.sender_id,
-          invitation_id: invitationId,
-          type: status === 'accepted' ? 'acceptance' : 'rejection',
-          content: senderMessage,
-          is_read: false
-        });
-        
-      if (senderMsgError) {
-        console.error('Sender message error:', senderMsgError);
-        throw senderMsgError;
-      }
-    }
+    // 不要なメッセージ作成を削除しました
+    // 元のメッセージのステータスを更新するだけで十分です
     
     return true;
   } catch (error) {
