@@ -87,7 +87,7 @@ input[type="reset"] {
 }
 
 /* Safari特有のボタンスタイル修正 */
-@supports (-webkit-touch-callout: none) {
+/* @supports (-webkit-touch-callout: none) {
   button,
   input[type="button"],
   input[type="submit"],
@@ -98,7 +98,7 @@ input[type="reset"] {
     color: white ;
     border: none ;
   }
-}
+} */
 
 /* ボタンのフォーカスと活性状態のスタイルを削除 */
 button:focus,
