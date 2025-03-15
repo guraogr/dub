@@ -146,6 +146,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onC
   const timeInfo = notification.availability ? (
     `${notification.availability.date ? formatDate(notification.availability.date) : '日付不明'} ${formatTime(notification.availability.start_time)}～${formatTime(notification.availability.end_time)}`
   ) : '詳細不明';
+  console.log(notification)
 
   return (
     <Modal

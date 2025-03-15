@@ -222,7 +222,16 @@ const MyAvailabilitiesPage = () => {
                 <div className="text-sm text-gray-600">
                   {availability.start_time?.slice(0, 5) || ''}～{availability.end_time?.slice(0, 5) || ''}
                 </div>
-                <div className="text-sm text-gray-500">{availability.comment || ''}</div>
+                <div className='flex'>
+                {availability.genre && (
+                  <div className="text-sm text-gray-500">{availability.genre}</div>
+                )}
+                {(availability.genre && availability.comment) && (
+                  <div className="text-sm text-gray-500">:</div>)}
+                {availability.comment && (
+                  <div className="text-sm text-gray-500">{availability.comment || ''}</div>
+                )}
+                </div>
               </div>
               <div className="flex space-x-2">
                 <button

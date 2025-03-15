@@ -26,6 +26,7 @@ interface Availability {
   start_time: string;
   end_time: string;
   comment: string;
+  genre?: string;
   user: UserProfile;
   invitations?: Invitation[];
 }
@@ -228,36 +229,6 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
   }, [user,selectedDate]);
   
   
-
-
-  // カレンダーの日付を取得
-  const getDaysInWeek = () => {
-    const days = [];
-    const startDate = new Date(currentDate);
-    startDate.setDate(currentDate.getDate() - currentDate.getDay()); // 週の始まり（日曜日）に設定
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      days.push(date);
-    }
-    
-    return days;
-  };
-
-  // 日付のフォーマット
-  const formatDate = (date: Date) => {
-    return date.getDate();
-  };
-
-  // 曜日のフォーマット
-  const formatDay = (date: Date) => {
-    const days = ['日', '月', '火', '水', '木', '金', '土'];
-    return days[date.getDay()];
-  };
-
-  // 今日かどうかチェックの関数は使用しないため削除
-
   // ユーザーを選択して誘いモーダルを表示
   const handleUserSelect = (userData: any) => {
     setSelectedUser(userData);
@@ -378,6 +349,7 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
                   id: availability.user?.id || availability.user_id,
                   name: availability.user?.name || '名前なし',
                   comment: availability.comment || '',
+                  genre: availability.genre || '',
                   time: `${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`,
                   availabilityId: availability.id,
                   avatar_url: availability.user?.avatar_url || ''
@@ -397,6 +369,11 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
                     <div className="font-bold truncate">{availability.user?.name || '名前なし'}</div>
                     <div className="whitespace-nowrap">{`${availability.start_time?.slice(0, 5) || ''}～${availability.end_time?.slice(0, 5) || ''}`}</div>
                   </div>
+                  {availability.genre && (
+                    <div className="flex-shrink-0 mt-0.5">
+                      <div className="text-sm font-medium">{availability.genre}</div>
+                    </div>
+                  )}
                   <div className="flex-shrink-0">
                     <div className="text-sm text-gray-500 truncate">{availability.comment || ''}</div>
                   </div>

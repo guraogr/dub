@@ -20,7 +20,7 @@ const AppointmentCompletedPage = () => {
             *,
             sender:sender_id(*),
             recipient:recipient_id(*),
-            availability:availability_id(*)
+            availability:availability_id(id, date, start_time, end_time, comment, genre)
           `)
           .eq('id', id)
           .single();
@@ -85,6 +85,13 @@ const AppointmentCompletedPage = () => {
             {appointment.availability.start_time.slice(0, 5)} ~ {appointment.availability.end_time.slice(0, 5)}
           </div>
         </div>
+        
+        {appointment.availability.genre && (
+          <div className="mb-4">
+            <div className="text-sm text-gray-500">ジャンル</div>
+            <div className="font-medium">{appointment.availability.genre}</div>
+          </div>
+        )}
         
         {isPending ? (
           <div className="bg-yellow-50 p-4 mb-6">

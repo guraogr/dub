@@ -20,7 +20,7 @@ export const fetchInboxMessages = async (
       *,
       sender:sender_id(*),
       invitation:invitation_id(*,
-        availability:availability_id(*)
+        availability:availability_id(id, date, start_time, end_time, comment, genre)
       )
     `)
     .eq('recipient_id', userId)
@@ -47,7 +47,7 @@ export const fetchSentMessages = async (
       *,
       recipient:recipient_id(*),
       invitation:invitation_id(*,
-        availability:availability_id(*)
+        availability:availability_id(id, date, start_time, end_time, comment, genre)
       )
     `)
     .eq('sender_id', userId)

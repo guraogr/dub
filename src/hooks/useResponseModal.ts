@@ -57,6 +57,7 @@ export const useResponseModal = (message: ExtendedMessageType | null, isInbox: b
     // メッセージタイプに基づいて表示する情報を調整
     if (message.type === 'invitation') {
       activityDetails = message.invitation?.availability?.comment || ' ';
+      genre = message.invitation?.availability?.genre || '';
       
       if (isInbox) {
         // 受信箱の場合

@@ -5,6 +5,7 @@ interface InviteModalProps {
     id: string;
     name: string;
     comment: string;
+    genre?: string;
     time: string;
     avatar_url?: string; 
   };
@@ -21,7 +22,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ user, isOpen, onClose, onInvi
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
       <div className="bg-white p-6 w-80 max-w-md rounded-2xl">
-        <h3 className="text-lg font-medium mb-4">遊びに誘いますか？</h3>
+        <h3 className="text-lg font-bold mb-4">遊びに誘いますか？</h3>
         <div className="flex items-center mb-4">
           {user.avatar_url && !imageError ? (
             <img 
@@ -40,6 +41,9 @@ const InviteModal: React.FC<InviteModalProps> = ({ user, isOpen, onClose, onInvi
           )}
           <div>
             <div className="font-medium">{user.name}</div>
+            {user.genre && (
+              <div className="text-sm text-gray-500 font-medium">{user.genre}</div>
+            )}
             <div className="text-sm text-gray-500">{user.comment}</div>
             <div className="text-sm">{user.time}</div>
           </div>
