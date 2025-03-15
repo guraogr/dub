@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ExtendedMessageType } from '../types';
 import { useSupabase } from '../contexts/SupabaseContext';
 import { useMessages } from './useMessages';
+import { toast } from 'sonner';
 
 /**
  * MessagesPageのロジックを分離したカスタムフック
@@ -87,7 +88,12 @@ export const useMessagesPage = () => {
   const rejectInvitation = useCallback(async (messageId: string, invitationId: string) => {
     const result = await handleResponseToInvitation(messageId, invitationId, 'rejected');
     if (result) {
-      alert('誘いを拒否しました');
+      // トースト通知を表示
+      toast.success('遊びの誘いをお断りしました', {
+        duration: 3000,
+        style: { background: '#111111', color: '#fff' }
+      });
+      setModalOpen(false);
     }
     return result;
   }, [handleResponseToInvitation]);

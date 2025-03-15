@@ -76,7 +76,7 @@ const CreateAvailabilityPage = () => {
       // トースト通知を表示
       toast.success('空いてる予定を設定しました。', {
         duration: 3000,
-        style: { background: '#60a5fa' }
+        style: { background: '#111111', color: "#fff" }
       });
 
     } catch (error: any) {
