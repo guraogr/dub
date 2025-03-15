@@ -109,7 +109,13 @@ const CreateAvailabilityPage = () => {
   // 終日フラグが変更された時の処理
   useEffect(() => {
     if (isFullDay) {
-      setStartTime('00:00');
+      const now = new Date();
+      const currentMinute = now.getMinutes();
+      const startMinute = currentMinute < 30 ? 30 : 60;
+      const startHour = now.getHours() + (startMinute === 60 ? 1 : 0);
+      const formattedStartHour = startHour.toString().padStart(2, '0');
+      const formattedStartMinute = startMinute.toString().padStart(2, '0');
+      setStartTime(`${formattedStartHour}:${formattedStartMinute}`);
       setEndTime('23:30');
     } else if (availableTimeSlots.length > 0) {
       // フラグがOFFになった時、利用可能な最初のスロットに設定
@@ -273,7 +279,7 @@ const CreateAvailabilityPage = () => {
         ) : (
           <div className="p-2 bg-gray-50 rounded-md border border-gray-200">
             <div className="text-sm text-gray-500">
-              設定時間: 00:00 - 23:30（終日）
+              設定時間: {startTime} - 23:30（終日）
             </div>
           </div>
         )}
