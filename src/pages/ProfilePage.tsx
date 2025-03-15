@@ -48,8 +48,8 @@ const ProfilePage = () => {
     // 画像サイズの再チェック
     if (avatarFile) {
       const fileSizeInMB = avatarFile.size / (1024 * 1024);
-      if (fileSizeInMB > 2) {
-        setError('画像サイズが大きすぎます。2MB以下の画像を選択してください。');
+      if (fileSizeInMB > 6) {
+        setError('画像サイズが大きすぎます。6MB以下の画像を選択してください。');
         return;
       }
     }
@@ -162,9 +162,9 @@ const ProfilePage = () => {
                   const file = e.target.files[0];
                   const fileSizeInMB = file.size / (1024 * 1024);
                   
-                  // ファイルサイズチェック (2MB以下のみ許可)
-                  if (fileSizeInMB > 2) {
-                    setError('画像サイズが大きすぎます。2MB以下の画像を選択してください。');
+                  // ファイルサイズチェック (6MB以下のみ許可)
+                  if (fileSizeInMB > 6) {
+                    setError('画像サイズが大きすぎます。6MB以下の画像を選択してください。');
                     // ファイル入力をリセット
                     e.target.value = '';
                     return;
