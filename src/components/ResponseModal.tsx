@@ -88,16 +88,8 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
         }
     }
     // 送信箱の場合
-    else {
-      if (message.type === 'invitation') {
-        if (message.invitation?.status === 'pending') {
-          return '遊びの詳細';
-        } else if (message.invitation?.status === 'accepted') {
-          return '遊びの約束が決まりました';
-        } else if (message.invitation?.status === 'rejected') {
-          return '遊びの詳細';
-        }
-      }
+    else if (message.type === 'acceptance'){
+        return '遊びの約束が決まりました';
     }
     
     return '遊びの詳細';
@@ -152,7 +144,7 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
       ) : (
         <>
           {/* 承諾済みの場合、SNSリンクを表示 */}
-          {message.invitation?.status === 'accepted' && (
+          {(message.invitation?.status === 'accepted' || message.type === 'acceptance') && (
             <div className="mb-6">
               <p className="text-sm text-gray-600 mb-4">
                 LINE や Instagram 等の SNS を通じて、友達と遊びに出かけよう！

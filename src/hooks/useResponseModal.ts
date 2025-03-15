@@ -30,8 +30,8 @@ export const useResponseModal = (message: ExtendedMessageType | null, isInbox: b
     // 送信箱：自分が送信者の場合
 
     // メッセージタイプに基づいて表示する情報を決定
-    let senderName = message.sender?.name || 'ユーザー';
-    let avatarUrl = message.sender?.avatar_url;
+    let senderName = '';
+    let avatarUrl = null;
     let timeInfo = message.time && message.time !== 'undefined ~ undefined' 
       ? message.time 
       : '時間情報なし';
@@ -39,12 +39,23 @@ export const useResponseModal = (message: ExtendedMessageType | null, isInbox: b
     let activityDetails = '';
     
     // メッセージタイプに基づいて表示する情報を調整
+    // ユーザーIDが送信者IDと一致するか確認
+    const isUserSender = message.sender_id === currentUserId;
+    
+    // 受信箱の場合と送信箱の場合で表示する情報を切り替え
+    if (isInbox) {
+      // 受信箱の場合は送信者の情報を表示
+      senderName = message.sender?.name || 'ユーザー';
+      avatarUrl = message.sender?.avatar_url;
+    } else {
+      // 送信箱の場合は受信者の情報を表示
+      senderName = message.recipient?.name || 'ユーザー';
+      avatarUrl = message.recipient?.avatar_url;
+    }
+    
+    // メッセージタイプに基づいて表示する情報を調整
     if (message.type === 'invitation') {
       activityDetails = message.invitation?.availability?.comment || ' ';
-      
-      // 仕様に従ってステータス文言を表示する
-      // ユーザーIDが送信者IDと一致するか確認
-      const isUserSender = message.sender_id === currentUserId;
       
       if (isInbox) {
         // 受信箱の場合
@@ -95,6 +106,14 @@ export const useResponseModal = (message: ExtendedMessageType | null, isInbox: b
           }
         }
       }
+    } else if (message.type === 'acceptance') {
+      // 承諾メッセージの場合
+      if (message.invitation && message.invitation.availability) {
+        // 予定情報があれば表示
+        timeInfo = `${new Date(message.invitation.availability.date).toLocaleDateString('ja-JP')} ${message.invitation.availability.start_time?.slice(0, 5) || ''} ~ ${message.invitation.availability.end_time?.slice(0, 5) || ''}`;
+        activityDetails = message.invitation.availability.comment || ' ';
+      }
+      commentText = '遊びの誘いが承諾されました';
     } else {
       // その他のメッセージタイプの場合
       commentText = message.content || '';
