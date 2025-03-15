@@ -6,8 +6,9 @@ import BottomNavigation from '../components/BottomNavigation';
 
 const CreateAvailabilityPage = () => {
   const [date, setDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [startTime, setStartTime] = useState('00:00');
+  const [endTime, setEndTime] = useState('23:30');
+
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,16 +25,18 @@ const CreateAvailabilityPage = () => {
 
   // 終日フラグが変更された時の処理
   useEffect(() => {
+    if (isFullDay === false) return;
     if (isFullDay) {
       setStartTime('00:00');
       setEndTime('23:59');
-    } else {
+    } 
+    else {
       // フラグがOFFになった時、値をリセット（またはデフォルト値に設定）
       setStartTime('');
       setEndTime('');
     }
   }, [isFullDay]);
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -89,7 +92,7 @@ const CreateAvailabilityPage = () => {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="max-w-md mx-auto p-4 pb-20">
       <h1 className="text-2xl font-bold mb-10 text-center pt-8">空いてる予定を登録する</h1>
@@ -130,7 +133,6 @@ const CreateAvailabilityPage = () => {
             required
           />
         </div>
-        
         {/* 時間選択（終日がOFFの場合のみ表示） */}
 {!isFullDay ? (
   <div className="grid grid-cols-2 gap-4">
@@ -172,7 +174,7 @@ const CreateAvailabilityPage = () => {
     </div>
   </div>
 ) : (
-  <div className="p-2 bg-gray-50 rounded-full border border-gray-200">
+  <div className="p-2 bg-gray-50 rounded-md border border-gray-200">
     <div className="text-sm text-gray-500">
       設定時間: 00:00 - 23:59（終日）
     </div>
