@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { NotificationType } from '../types';
 import { formatDate, formatTime } from '../utils/dateUtils';
+import Button from './ui/Button';
+import Modal from './ui/Modal';
+import Avatar from './ui/Avatar';
 
 interface NotificationModalProps {
   notification: NotificationType;
@@ -139,63 +142,60 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onC
   // 拒否処理
   const handleReject = () => handleInvitationResponse('rejected');
 
+  // 時間情報を整形
+  const timeInfo = notification.availability ? (
+    `${notification.availability.date ? formatDate(notification.availability.date) : '日付不明'} ${formatTime(notification.availability.start_time)}～${formatTime(notification.availability.end_time)}`
+  ) : '詳細不明';
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white rounded-full p-6 w-80 max-w-md">
-        <h3 className="text-lg font-medium mb-4">遊びの誘いが届きました</h3>
-        
-        <div className="flex items-center mb-4">
-          <div className="w-12 h-12 bg-gray-300 rounded-full mr-4">
-            {notification.sender?.avatar_url && (
-              <img 
-                src={notification.sender.avatar_url} 
-                alt={notification.sender.name || '送信者'} 
-                className="w-full h-full object-cover rounded-full"
-              />
-            )}
-          </div>
-          <div>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="遊びの誘いが届きました"
+    >
+      {/* ユーザー情報 */}
+      <div className="flex flex-col mb-4">
+        <div className="flex items-center mb-3">
+          <Avatar 
+            src={notification.sender?.avatar_url} 
+            alt={notification.sender?.name || '送信者'} 
+            size="lg" 
+            fallback={(notification.sender?.name || '送信者').charAt(0)}
+          />
+          <div className="ml-4">
             <div className="font-medium">{notification.sender?.name || '送信者'}</div>
-            <div className="text-sm text-gray-600">{notification.availability?.comment || ''}</div>
           </div>
         </div>
         
-        <div className="mb-4">
-          <div className="text-sm text-gray-500">遊ぶ予定:</div>
-          <div className="font-medium">
-            {notification.availability ? (
-              <>
-                {notification.availability.date ? formatDate(notification.availability.date) : '日付不明'} 
-                {formatTime(notification.availability.start_time)}
-                ～
-                {formatTime(notification.availability.end_time)}
-              </>
-            ) : (
-              '詳細不明'
-            )}
-          </div>
-        </div>
-        
-        <p className="text-sm text-gray-600 mb-4">
-          誘いを承諾すると、一緒に遊ぶための連絡を取り合います。拒否した場合、相手には予定が埋まった通知が送られます。
-        </p>
-        
-        <div className="flex justify-end space-x-2">
-          <button
-            onClick={handleReject}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-100"
-          >
-            拒否する
-          </button>
-          <button
-            onClick={handleAccept}
-            className="px-4 py-2 bg-yellow-400 text-black rounded-full hover:bg-yellow-500"
-          >
-            承諾する
-          </button>
+        {/* 遊びの詳細情報 */}
+        <div className="bg-gray-50 p-3 rounded-md">
+          <div className="text-sm font-medium mb-1">募集詳細</div>
+          <div className="text-sm text-gray-700">時間：{timeInfo}</div>
+          {notification.availability?.comment && (
+            <div className="text-sm text-gray-700 mt-1">コメント: {notification.availability.comment}</div>
+          )}
         </div>
       </div>
-    </div>
+      
+      <p className="text-sm text-gray-600 mb-4">
+        誘いを承諾すると、一緒に遊ぶための連絡を取り合います。拒否した場合、相手には予定が埋まった通知が送られます。
+      </p>
+      
+      <div className="flex justify-end space-x-2">
+        <Button
+          variant="secondary"
+          onClick={handleReject}
+        >
+          拒否する
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleAccept}
+        >
+          承諾する
+        </Button>
+      </div>
+    </Modal>
   );
 };
 

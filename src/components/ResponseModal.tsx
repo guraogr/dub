@@ -16,43 +16,7 @@ interface ResponseModalProps {
   onReject: (messageId: string, invitationId: string) => void;
 }
 
-/**
- * ユーザー情報コンポーネント
- * リファクタリングポイント: 大きなコンポーネントを小さく分割
- */
-const UserInfo: React.FC<{
-  name: string;
-  avatarUrl?: string | null;
-  timeInfo: string;
-  comment: string;
-  activityDetails?: string;
-  messageType?: string;
-}> = ({ name, avatarUrl, timeInfo, comment, activityDetails, messageType }) => (
-  <div className="flex flex-col mb-4">
-    <div className="flex items-center mb-3">
-      <Avatar 
-        src={avatarUrl} 
-        alt={name} 
-        size="lg" 
-        fallback={name.charAt(0)}
-      />
-      <div className="ml-4">
-        <div className="font-medium">{name}</div>
-      </div>
-    </div>
-    
-    {/* 遊びの詳細情報 */}
-    {(messageType === 'invitation' || messageType === 'acceptance' || messageType === 'rejection') && (
-      <div className="bg-gray-50 p-3 rounded-md">
-        <div className="text-sm font-medium mb-1">募集詳細</div>
-        <div className="text-sm text-gray-700">時間：{timeInfo}</div>
-        {activityDetails && activityDetails !== ' ' && (
-          <div className="text-sm text-gray-700 mt-1">コメント: {activityDetails}</div>
-        )}
-      </div>
-    )}
-  </div>
-);
+
 
 /**
  * メッセージ詳細モーダル
@@ -105,15 +69,31 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
       onClose={onClose}
       title={getModalTitle()}
     >
-      {/* ユーザー情報コンポーネント */}
-      <UserInfo
-        name={messageData.senderName}
-        avatarUrl={messageData.avatarUrl}
-        timeInfo={messageData.timeInfo}
-        comment={messageData.commentText}
-        activityDetails={messageData.activityDetails}
-        messageType={messageData.messageType}
-      />
+      {/* ユーザー情報 */}
+      <div className="flex flex-col mb-4">
+        <div className="flex items-center mb-3">
+          <Avatar 
+            src={messageData.avatarUrl} 
+            alt={messageData.senderName} 
+            size="lg" 
+            fallback={messageData.senderName.charAt(0)}
+          />
+          <div className="ml-4">
+            <div className="font-medium">{messageData.senderName}</div>
+          </div>
+        </div>
+        
+        {/* 遊びの詳細情報 */}
+        {(messageData.messageType === 'invitation' || messageData.messageType === 'acceptance' || messageData.messageType === 'rejection') && (
+          <div className="bg-gray-50 p-3 rounded-md">
+            <div className="text-sm font-medium mb-1">募集詳細</div>
+            <div className="text-sm text-gray-700">時間：{messageData.timeInfo}</div>
+            {messageData.activityDetails && messageData.activityDetails !== ' ' && (
+              <div className="text-sm text-gray-700 mt-1">コメント: {messageData.activityDetails}</div>
+            )}
+          </div>
+        )}
+      </div>
       
       {showActionButtons ? (
         <>
