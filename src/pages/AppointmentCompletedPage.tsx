@@ -39,7 +39,7 @@ const AppointmentCompletedPage = () => {
   }, [id]);
 
   const openLine = () => {
-    window.open('https://line.me/');
+    window.open('https://line.me/R/');
   };
 
   const openInstagram = () => {
