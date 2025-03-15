@@ -90,37 +90,36 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">開始時間</label>
-              <input
-                type="time"
+              <select
                 id="startTime"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                step="1800"
-                className="mt-1 block w-full border border-gray-300 rounded-full p-2"
+                className="mt-1 block w-full border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 required
-              />
-
-              {/* <input
-                type="time"
-                id="startTime"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-full p-2"
-                required
-              /> */}
+              >
+                {Array.from({ length: 48 }).map((_, i) => (
+                  <option key={i} value={`${("0" + Math.floor(i / 2)).slice(-2)}:${(i % 2) ? "30" : "00"}`}>
+                    {`${("0" + Math.floor(i / 2)).slice(-2)}:${(i % 2) ? "30" : "00"}`}
+                  </option>
+                ))}
+              </select>
             </div>
             
             <div>
               <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">終了時間</label>
-              <input
-                type="time"
+              <select
                 id="endTime"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                step="1800"
-                className="mt-1 block w-full border border-gray-300 rounded-full p-2"
+                className="mt-1 block w-full border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 required
-              />
+              >
+                {Array.from({ length: 48 }).map((_, i) => (
+                  <option key={i} value={`${("0" + Math.floor(i / 2)).slice(-2)}:${(i % 2) ? "30" : "00"}`}>
+                    {`${("0" + Math.floor(i / 2)).slice(-2)}:${(i % 2) ? "30" : "00"}`}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           

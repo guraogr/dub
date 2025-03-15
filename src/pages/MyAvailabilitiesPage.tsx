@@ -30,7 +30,12 @@ const MyAvailabilitiesPage = () => {
 
   // 自分の予定を取得する関数
   const fetchMyAvailabilities = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('ユーザー情報がありません');
+      return;
+    }
+    
+    console.log('ユーザーID:', user.id);
     
     try {
       setLoading(true);
@@ -45,6 +50,18 @@ const MyAvailabilitiesPage = () => {
       console.log('今日の日付:', todayStr);
       console.log('現在の時間:', currentTimeStr);
       
+      // まず単純に自分の予定を全て取得してみる
+      const { data: allData, error: allError } = await supabase
+        .from('availabilities')
+        .select('*')
+        .eq('user_id', user.id);
+        
+      console.log('全ての予定データ:', allData);
+      
+      if (allError) {
+        console.error('全予定取得エラー:', allError);
+      }
+      
       // 自分の予定を取得（招待情報も含む）
       const { data, error } = await supabase
         .from('availabilities')
@@ -53,14 +70,29 @@ const MyAvailabilitiesPage = () => {
           invitations(id, status)
         `)
         .eq('user_id', user.id)
-        .gte('date', todayStr)
+        // .gte('date', todayStr) // 日付フィルターを一時的に無効化
         .order('date', { ascending: true })
         .order('start_time', { ascending: true });
         
-      if (error) throw error;
+      if (error) {
+        console.error('予定取得エラー:', error);
+        throw error;
+      }
       
       console.log('取得した予定データ:', data);
       
+      if (!data || data.length === 0) {
+        console.log('予定データがありません');
+        setAvailabilities([]);
+        return;
+      }
+      
+      // とりあえず全ての予定を表示するようにしてみる
+      setAvailabilities(data);
+      console.log('全ての予定を表示します:', data.length);
+      
+      // 以下のフィルタリング処理は一時的にコメントアウト
+      /*
       // フィルタリング処理
       const filteredData = data?.filter(item => {
         console.log('フィルタリング対象:', item.id, item.date, item.start_time, item.end_time);
@@ -108,6 +140,7 @@ const MyAvailabilitiesPage = () => {
       
       console.log('フィルタリング後の予定:', filteredData);
       setAvailabilities(filteredData);
+      */
       
     } catch (error) {
       console.error('予定の取得に失敗しました', error);
