@@ -34,13 +34,15 @@ const BottomNavigation = () => {
     
     const fetchUnreadCount = async () => {
       try {
-        // シンプルに未読メッセージの数を数える
+        // 未読メッセージの数を数える
+        // 1. 相手から遊びの誘いが届いた時（type=invitation）
+        // 2. 相手から遊びの誘いが承諾された時（type=acceptance）
         const { count, error } = await supabase
           .from('messages')
           .select('*', { count: 'exact' })
           .eq('recipient_id', user.id)
-          .eq('type', 'invitation')
-          .eq('is_read', false);
+          .eq('is_read', false)
+          .or('type.eq.invitation,type.eq.acceptance');
           
         if (error) throw error;
         

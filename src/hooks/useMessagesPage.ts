@@ -28,7 +28,8 @@ export const useMessagesPage = () => {
     setActiveTab,
     fetchMessages,
     handleResponseToInvitation,
-    createEnhancedMessage
+    createEnhancedMessage,
+    markAsRead
   } = useMessages();
 
   // ユーザーの認証状態を確認
@@ -58,9 +59,15 @@ export const useMessagesPage = () => {
     // 拡張メッセージを作成してモーダルに表示
     const enhancedMessage = createEnhancedMessage(message);
     
+    // メッセージが未読の場合は既読にする
+    if (!message.is_read && message.id) {
+      // markAsRead関数を呼び出して既読にする
+      markAsRead(message.id);
+    }
+    
     setSelectedMessage(enhancedMessage);
     setModalOpen(true);
-  }, [createEnhancedMessage]);
+  }, [createEnhancedMessage, markAsRead]);
 
   // タブ切り替え
   const handleTabChange = useCallback((tab: 'inbox' | 'sent') => {
