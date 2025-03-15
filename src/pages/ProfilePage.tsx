@@ -151,7 +151,7 @@ const ProfilePage = () => {
               </div>
             )}
           </div>
-          <label className="cursor-pointer text-blue-500 font-medium text-sm">
+          <label className="cursor-pointer font-medium text-sm">
             画像を変更
             <input
               type="file"
