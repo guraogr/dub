@@ -95,9 +95,19 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
                 id="startTime"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
+                step="1800"
                 className="mt-1 block w-full border border-gray-300 rounded-full p-2"
                 required
               />
+
+              {/* <input
+                type="time"
+                id="startTime"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="mt-1 block w-full border border-gray-300 rounded-full p-2"
+                required
+              /> */}
             </div>
             
             <div>
@@ -107,6 +117,7 @@ const EditAvailabilityModal = ({ availability, isOpen, onClose, onUpdate }: Edit
                 id="endTime"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
+                step="1800"
                 className="mt-1 block w-full border border-gray-300 rounded-full p-2"
                 required
               />

@@ -141,6 +141,7 @@ const CreateAvailabilityPage = () => {
       <input
         type="time"
         id="startTime"
+        step="1800"
         value={startTime}
         onChange={(e) => setStartTime(e.target.value)}
         className="mt-1 block w-full border border-gray-300 rounded-full py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -154,6 +155,7 @@ const CreateAvailabilityPage = () => {
       <input
         type="time"
         id="endTime"
+        step="1800"
         value={endTime}
         onChange={(e) => setEndTime(e.target.value)}
         className="mt-1 block w-full border border-gray-300 rounded-full py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
