@@ -13,6 +13,8 @@ const AppointmentCompletedPage = () => {
       try {
         if (!id) return;
         
+        console.log('招待ID:', id);
+        
         // ステータスに関係なく招待情報を取得
         const { data, error } = await supabase
           .from('invitations')
@@ -25,7 +27,27 @@ const AppointmentCompletedPage = () => {
           .eq('id', id)
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error('招待情報取得エラー:', error);
+          throw error;
+        }
+        
+        console.log('取得した招待データ:', data);
+        
+        // availabilityがない場合、再度取得を試みる
+        if (!data.availability && data.availability_id) {
+          console.log('availabilityが取得できていないため、再取得を試みます');
+          const { data: availabilityData, error: availabilityError } = await supabase
+            .from('availabilities')
+            .select('*')
+            .eq('id', data.availability_id)
+            .single();
+            
+          if (!availabilityError && availabilityData) {
+            console.log('別途取得したavailability:', availabilityData);
+            data.availability = availabilityData;
+          }
+        }
         
         setAppointment(data);
       } catch (error) {
@@ -45,6 +67,7 @@ const AppointmentCompletedPage = () => {
   const openInstagram = () => {
     window.open('https://www.instagram.com/');
   };
+  console.log(appointment?.availability)
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">読み込み中...</div>;
@@ -52,6 +75,10 @@ const AppointmentCompletedPage = () => {
 
   if (!appointment) {
     return <div className="p-4">約束の情報が見つかりません</div>;
+  }
+  
+  if (!appointment.availability) {
+    return <div className="p-4">予定の詳細情報が見つかりません</div>;
   }
 
   // ステータスに応じた表示内容を変更
@@ -80,9 +107,9 @@ const AppointmentCompletedPage = () => {
         <div className="mb-4">
           <div className="text-sm text-gray-500">日時</div>
           <div className="font-medium">
-            {new Date(appointment.availability.date).toLocaleDateString('ja-JP')}
+            {appointment.availability.date && new Date(appointment.availability.date).toLocaleDateString('ja-JP')}
             {' '}
-            {appointment.availability.start_time.slice(0, 5)} ~ {appointment.availability.end_time.slice(0, 5)}
+            {appointment.availability.start_time && appointment.availability.start_time.slice(0, 5)} ~ {appointment.availability.end_time && appointment.availability.end_time.slice(0, 5)}
           </div>
         </div>
         
@@ -136,7 +163,7 @@ const AppointmentCompletedPage = () => {
 
       <button
         onClick={() => navigate('/')}
-        className="w-full text-gray-600  bg-white text-gray-500"
+        className="w-full text-gray-600  bg-white text-gray-500 rounded-full"
         style={{ borderRadius: 1000,padding: '16px 0' }}
       >
         閉じる
