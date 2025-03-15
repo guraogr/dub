@@ -31,7 +31,7 @@ const Modal: React.FC<ModalProps> = ({
         </button>
         
         {title && (
-          <h3 className="text-lg font-medium mb-4">{title}</h3>
+          <h3 className="text-lg font-medium mb-4 " style={{fontWeight:"bold"}}>{title}</h3>
         )}
         
         {children}

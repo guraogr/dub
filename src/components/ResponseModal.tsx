@@ -4,6 +4,8 @@ import Modal from './ui/Modal';
 import Avatar from './ui/Avatar';
 import Button from './ui/Button';
 import { useResponseModal } from '../hooks/useResponseModal';
+import { FaLine } from 'react-icons/fa';
+import { FaInstagram } from 'react-icons/fa';
 
 interface ResponseModalProps {
   message: ExtendedMessageType | null;
@@ -49,12 +51,6 @@ const UserInfo: React.FC<{
         )}
       </div>
     )}
-    
-    {/* メッセージステータス */}
-    {/* <div className="text-sm mt-1">
-      <div className="font-medium mb-1 text-gray-700">ステータス</div>
-      <div className="">{comment}</div>
-    </div> */}
   </div>
 );
 
@@ -83,15 +79,13 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
   const getModalTitle = () => {
     // 受信箱の場合
     if (messageData.isInbox) {
-      if (message.type === 'invitation') {
         if (message.invitation?.status === 'pending') {
           return '遊びの誘いを承諾しますか？';
         } else if (message.invitation?.status === 'accepted') {
-          return '遊びの詳細';
+          return '遊びの約束が決まりました';
         } else if (message.invitation?.status === 'rejected') {
           return '遊びの詳細';
         }
-      }
     }
     // 送信箱の場合
     else {
@@ -99,14 +93,14 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
         if (message.invitation?.status === 'pending') {
           return '遊びの詳細';
         } else if (message.invitation?.status === 'accepted') {
-          return '遊びの詳細';
+          return '遊びの約束が決まりました';
         } else if (message.invitation?.status === 'rejected') {
           return '遊びの詳細';
         }
       }
     }
     
-    return 'メッセージ詳細';
+    return '遊びの詳細';
   };
 
   // メッセージタイプに基づいてボタンを表示するか判定
@@ -156,14 +150,32 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
           </div>
         </>
       ) : (
-        <div className="flex justify-end">
-          <Button
-            variant="secondary"
-            onClick={onClose}
-          >
-            閉じる
-          </Button>
-        </div>
+        <>
+          {/* 承諾済みの場合、SNSリンクを表示 */}
+          {message.invitation?.status === 'accepted' && (
+            <div className="mb-6">
+              <p className="text-sm text-gray-600 mb-4">
+                LINE や Instagram 等の SNS を通じて、友達と遊びに出かけよう！
+              </p>
+              <div className="space-y-2 justify-center">
+                <button
+                  onClick={() => window.open('https://line.me/R/')}
+                  className="flex w-full  items-center justify-center bg-[#06C755] text-white px-6 py-2"
+                  style={{borderRadius: 1000, padding: "12px 0"}}
+                >
+                  <FaLine className="mr-2" /> LINEを開く
+                </button>
+                <button
+                  onClick={() => window.open('https://www.instagram.com/')}
+                  className="flex w-full items-center justify-center bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white px-6 py-2"
+                  style={{borderRadius: 1000, padding: "12px 0"}}
+                >
+                  <FaInstagram className="mr-2" /> Instagramを開く
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </Modal>
   );
