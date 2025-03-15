@@ -22,6 +22,7 @@ export interface NotificationType {
     start_time: string | null;
     end_time: string | null;
     comment?: string | null;
+    genre?: string | null;
   } | null;
   created_at: string;
 }
@@ -32,6 +33,7 @@ export interface AvailabilityType {
   start_time: string | null;
   end_time: string | null;
   comment?: string | null;
+  genre?: string | null;
   user_id: string;
 }
 

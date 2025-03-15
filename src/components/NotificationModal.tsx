@@ -171,6 +171,9 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onC
         <div className="bg-gray-50 p-3 rounded-md">
           <div className="text-sm font-medium mb-1">募集詳細</div>
           <div className="text-sm text-gray-700">時間：{timeInfo}</div>
+          {notification.availability?.genre && (
+            <div className="text-sm text-gray-700 mt-1">ジャンル: {notification.availability.genre}</div>
+          )}
           {notification.availability?.comment && (
             <div className="text-sm text-gray-700 mt-1">コメント: {notification.availability.comment}</div>
           )}

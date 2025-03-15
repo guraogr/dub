@@ -88,6 +88,9 @@ const ResponseModal: React.FC<ResponseModalProps> = ({
           <div className="bg-gray-50 p-3 rounded-md">
             <div className="text-sm font-medium mb-1">募集詳細</div>
             <div className="text-sm text-gray-700">時間：{messageData.timeInfo}</div>
+            {messageData.genre && (
+              <div className="text-sm text-gray-700 mt-1">ジャンル: {messageData.genre}</div>
+            )}
             {messageData.activityDetails && messageData.activityDetails !== ' ' && (
               <div className="text-sm text-gray-700 mt-1">コメント: {messageData.activityDetails}</div>
             )}

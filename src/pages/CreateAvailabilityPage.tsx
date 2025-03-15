@@ -15,6 +15,8 @@ const CreateAvailabilityPage = () => {
   const [error, setError] = useState('');
   // 終日フラグを追加
   const [isFullDay, setIsFullDay] = useState(false);
+  // ジャンル選択用のstate
+  const [genre, setGenre] = useState('その他');
   const navigate = useNavigate();
 
   // 日付のデフォルト値を今日に設定
@@ -155,7 +157,8 @@ const CreateAvailabilityPage = () => {
           date,
           start_time: startTime,
           end_time: endTime,
-          comment
+          comment,
+          genre
         });
 
       if (error) throw error;
@@ -284,6 +287,37 @@ const CreateAvailabilityPage = () => {
           </div>
         )}
                 
+        {/* ジャンル選択 */}
+        <div>
+          <label htmlFor="genre" className="block text-sm font-medium text-gray-700">
+            ジャンル
+          </label>
+          <select
+            id="genre"
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="フットサル">フットサル</option>
+            <option value="テニス">テニス</option>
+            <option value="ジム/筋トレ">ジム/筋トレ</option>
+            <option value="スポーツ観戦">スポーツ観戦</option>
+            <option value="ショッピング">ショッピング</option>
+            <option value="映画">映画</option>
+            <option value="ライブ">ライブ</option>
+            <option value="サウナ">サウナ</option>
+            <option value="散歩">散歩</option>
+            <option value="カフェ">カフェ</option>
+            <option value="朝活">朝活</option>
+            <option value="ランチ">ランチ</option>
+            <option value="飲み会">飲み会</option>
+            <option value="その他">その他</option>
+          </select>
+          <div className="mt-1 text-xs text-gray-500">
+            遊びのジャンルを選択してください
+          </div>
+        </div>
+        
         {/* コメント入力 */}
         <div>
           <label htmlFor="comment" className="block text-sm font-medium text-gray-700">
@@ -294,11 +328,11 @@ const CreateAvailabilityPage = () => {
             id="comment"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="例: 暇だからお出かけしよう〜！"
+            placeholder="例: テルマー湯に一緒に行こう〜！"
             className="mt-1 block w-full border border-gray-300 rounded-full py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
           <div className="mt-1 text-xs text-gray-500">
-            みんなに呼びかけるメッセージを書いてみよう！
+            出かけたい特定の場所や、遊びたい内容を書いてみよう！
           </div>
         </div>
         

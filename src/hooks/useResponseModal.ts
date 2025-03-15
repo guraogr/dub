@@ -37,6 +37,7 @@ export const useResponseModal = (message: ExtendedMessageType | null, isInbox: b
       : '時間情報なし';
     let commentText = message.comment && message.comment.trim() !== '' ? message.comment : '';
     let activityDetails = '';
+    let genre = '';
     
     // メッセージタイプに基づいて表示する情報を調整
     // ユーザーIDが送信者IDと一致するか確認
@@ -112,6 +113,7 @@ export const useResponseModal = (message: ExtendedMessageType | null, isInbox: b
         // 予定情報があれば表示
         timeInfo = `${new Date(message.invitation.availability.date).toLocaleDateString('ja-JP')} ${message.invitation.availability.start_time?.slice(0, 5) || ''} ~ ${message.invitation.availability.end_time?.slice(0, 5) || ''}`;
         activityDetails = message.invitation.availability.comment || ' ';
+        genre = message.invitation.availability.genre || '';
       }
       commentText = '遊びの誘いが承諾されました';
     } else {
@@ -129,6 +131,7 @@ export const useResponseModal = (message: ExtendedMessageType | null, isInbox: b
       timeInfo,
       commentText,
       activityDetails,
+      genre,
       isActionable,
       messageId: message.id,
       invitationId: message.invitation?.id,
