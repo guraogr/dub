@@ -9,54 +9,24 @@ import { ExtendedMessageType } from '../types';
  * @returns ステータステキスト
  */
 export const getStatusText = (message: ExtendedMessageType, isInbox: boolean, currentUserId?: string): string => {
-  // PART1: スカウトを送る/スカウトが届く
-  // PART2: スカウトに応答する
-  // PART3: スカウトの返事が届く
-  
+  // 仕様に従ってステータス文言を表示する
   if (isInbox) {
     // 受信箱のステータス文言
-    if (message.type === 'invitation') {
-      // 招待タイプの場合、ステータスによって表示を変える
-      if (message.invitation?.status === 'pending') {
-        // 2. [受信箱]遊びの誘いが届きました（相手が自分の遊びの募集にスカウトを送る）
-        return '遊びの誘いが届きました';
-      } else if (message.invitation?.status === 'accepted') {
-        // 1. [受信箱] 誘いが承諾されました
-        // 自分が招待を送った場合のみ表示する
-        // 自分が送信者の場合は、自分が招待を送った場合
-        if (currentUserId && message.sender_id === currentUserId) {
-          return '誘いが承諾されました';
-        }
-        return '';
-      } else if (message.invitation?.status === 'rejected') {
-        // 2. [受信箱] 相手の予定が埋まってしまいました
-        // 自分が招待を送った場合のみ表示する
-        // 自分が送信者の場合は、自分が招待を送った場合
-        if (currentUserId && message.sender_id === currentUserId) {
-          return '相手の予定が埋まってしまいました';
-        }
-        return '';
-      }
+    if (message.invitation?.status === 'accepted') {
+      return '遊びの誘いが承諾されました';
+    } else if (message.invitation?.status === 'rejected') {
+      return '相手の予定が埋まってしまいました';
     }
-    
     // デフォルトの場合はメッセージ内容を表示
     return message.content || '';
   } else {
     // 送信箱のステータス文言
     if (message.type === 'invitation') {
-      // 招待タイプの場合、ステータスによって表示を変える
       if (message.invitation?.status === 'pending') {
-        // 1. [送信箱]スカウト送信済み（自分が相手の遊び募集にスカウトを送る）
+        // 保留中の場合
         return 'スカウト送信済み';
-      } else if (message.invitation?.status === 'accepted') {
-        // 1. [送信箱]遊びの誘いを承諾しました（相手が送ってきたスカウトに対して、自分が承諾ボタンをおす）
-        return '遊びの誘いを承諾しました';
-      } else if (message.invitation?.status === 'rejected') {
-        // 2. [送信箱]遊びの誘いをお断りしました（相手が送ってきたスカウトに対して、自分が拒否ボタンをおした場合）
-        return '遊びの誘いをお断りしました';
       }
     }
-    
     // デフォルトの場合はメッセージ内容を表示
     return message.content || '';
   }
@@ -73,26 +43,22 @@ export const getMessageIcon = (type: string, isInbox: boolean): React.ReactNode 
   if (isInbox) {
     switch (type) {
       case 'invitation':
-        return '↘'; // 緑色の下矢印
-      case 'invitation_pending':
-        return '↧'; // 黄色の下矢印
+        return '↘'; 
       case 'rejection':
-        return '×'; // 灰色のクロス
+        return '×'; 
       default:
-        return '↘'; // デフォルトは緑色の下矢印
+        return '↘';
     }
   } 
   // 送信箱の場合
   else {
     switch (type) {
       case 'invitation':
-        return '↖︎'; // 緑色の下矢印
-      case 'invitation_pending':
-        return '↩'; // 黄色の右矢印
+        return '↖︎'; 
       case 'rejection':
-        return '×'; // 灰色のクロス
+        return '×'; 
       default:
-        return '↖︎'; // デフォルトは緑色の下矢印
+        return '↖︎';
     }
   }
 };

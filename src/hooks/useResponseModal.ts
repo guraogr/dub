@@ -1,11 +1,26 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { ExtendedMessageType } from '../types';
+import { useSupabase } from '../contexts/SupabaseContext';
 
 /**
  * ResponseModalのロジックを分離したカスタムフック
  * リファクタリングポイント: UIとロジックを分離して、テスト可能性を向上
  */
 export const useResponseModal = (message: ExtendedMessageType | null, isInbox: boolean = true) => {
+  const { supabase } = useSupabase(); // Supabaseコンテキストからクライアントを取得
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
+  
+  // ユーザーIDを取得
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setCurrentUserId(data.user.id);
+      }
+    };
+    
+    fetchUserId();
+  }, [supabase]);
   // 安全なアクセスのためのヘルパー変数を計算
   const messageData = useMemo(() => {
     if (!message) return null;
@@ -27,33 +42,57 @@ export const useResponseModal = (message: ExtendedMessageType | null, isInbox: b
     if (message.type === 'invitation') {
       activityDetails = message.invitation?.availability?.comment || ' ';
       
-      // PART1: スカウトを送る/スカウトが届く
-      // PART2: スカウトに応答する
-      // PART3: スカウトの返事が届く
+      // 仕様に従ってステータス文言を表示する
+      // ユーザーIDが送信者IDと一致するか確認
+      const isUserSender = message.sender_id === currentUserId;
       
       if (isInbox) {
         // 受信箱の場合
         if (message.invitation?.status === 'pending') {
-          // 2. [受信箱]遊びの誘いが届きました（相手が自分の遊びの募集にスカウトを送る）
+          // 保留中の場合
           commentText = '遊びの誘いが届きました';
         } else if (message.invitation?.status === 'accepted') {
-          // 1. [受信箱] 誘いが承諾されました
-          commentText = '誘いが承諾されました';
+          // 承諾された場合
+          if (isUserSender) {
+            // 自分が送信者の場合（遊びに誘った人）
+            commentText = '遊びの誘いが承諾されました';
+          } else {
+            // 自分が受信者の場合
+            commentText = '誘いが承諾されました';
+          }
         } else if (message.invitation?.status === 'rejected') {
-          // 2. [受信箱] 相手の予定が埋まってしまいました
-          commentText = '相手の予定が埋まってしまいました';
+          // 拒否された場合
+          if (isUserSender) {
+            // 自分が送信者の場合（遊びに誘った人）
+            commentText = '相手の予定が埋まってしまいました';
+          } else {
+            // 自分が受信者の場合
+            commentText = '相手の予定が埋まってしまいました';
+          }
         }
       } else {
         // 送信箱の場合
         if (message.invitation?.status === 'pending') {
-          // 1. [送信箱]スカウト送信済み（自分が相手の遊び募集にスカウトを送る）
+          // 保留中の場合
           commentText = 'スカウト送信済み';
         } else if (message.invitation?.status === 'accepted') {
-          // 1. [送信箱]遊びの誘いを承諾しました（相手が送ってきたスカウトに対して、自分が承諾ボタンをおす）
-          commentText = '遊びの誘いを承諾しました';
+          // 承諾された場合
+          if (isUserSender) {
+            // 自分が送信者の場合（遊びに誘った人）
+            commentText = '遊びの誘いが承諾されました';
+          } else {
+            // 自分が受信者の場合（遊びに誘われた人）
+            commentText = '遊びの誘いを承諾しました';
+          }
         } else if (message.invitation?.status === 'rejected') {
-          // 2. [送信箱]遊びの誘いをお断りしました（相手が送ってきたスカウトに対して、自分が拒否ボタンをおした場合）
-          commentText = '遊びの誘いをお断りしました';
+          // 拒否された場合
+          if (isUserSender) {
+            // 自分が送信者の場合（遊びに誘った人）
+            commentText = '相手の予定が埋まってしまいました';
+          } else {
+            // 自分が受信者の場合（遊びに誘われた人）
+            commentText = '遊びの誘いをお断りしました';
+          }
         }
       }
     } else {

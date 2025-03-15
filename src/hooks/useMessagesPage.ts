@@ -27,8 +27,7 @@ export const useMessagesPage = () => {
     setActiveTab,
     fetchMessages,
     handleResponseToInvitation,
-    createEnhancedMessage,
-    userId // 現在のユーザーIDを取得
+    createEnhancedMessage
   } = useMessages();
 
   // ユーザーの認証状態を確認
@@ -104,7 +103,6 @@ export const useMessagesPage = () => {
     handleTabChange,
     closeModal,
     acceptInvitation,
-    rejectInvitation,
-    userId // 現在のユーザーIDを返す
+    rejectInvitation
   };
 };

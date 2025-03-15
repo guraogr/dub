@@ -24,8 +24,7 @@ const MessagesPage: React.FC = () => {
     handleTabChange,
     closeModal,
     acceptInvitation,
-    rejectInvitation,
-    userId // 現在のユーザーIDを取得
+    rejectInvitation
   } = useMessagesPage();
 
   console.log(messages)
@@ -55,7 +54,6 @@ const MessagesPage: React.FC = () => {
         activeTab={activeTab}
         loading={loading}
         onMessageClick={handleMessageClick}
-        userId={userId || undefined} // 現在のユーザーIDを渡す、nullの場合はundefinedに変換
       />
       
       {/* 応答モーダルコンポーネント */}

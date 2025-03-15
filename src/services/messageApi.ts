@@ -90,9 +90,20 @@ export const respondToInvitation = async (
   messageId: string, 
   invitationId: string, 
   status: 'accepted' | 'rejected'
-  // currentUserId パラメータは不要になったため削除
 ): Promise<boolean> => {
   try {
+    // 元のメッセージ情報を取得
+    const { data: messageData, error: fetchError } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('id', messageId)
+      .single();
+    
+    if (fetchError) {
+      console.error('Message fetch error:', fetchError);
+      throw fetchError;
+    }
+    
     // invitationsテーブルのステータスを更新
     const { error: invitationError } = await supabase
       .from('invitations')
@@ -115,8 +126,30 @@ export const respondToInvitation = async (
       throw messageError;
     }
     
-    // 不要なメッセージ作成を削除しました
-    // 元のメッセージのステータスを更新するだけで十分です
+    // 新しいメッセージを作成
+    let content = '';
+    if (status === 'accepted') {
+      content = '遊びの誘いを承諾しました';
+    } else if (status === 'rejected') {
+      content = '遊びの誘いをお断りしました';
+    }
+    
+    // 新しいメッセージを作成
+    const { error: createError } = await supabase
+      .from('messages')
+      .insert({
+        sender_id: messageData.recipient_id,
+        recipient_id: messageData.sender_id,
+        content: content,
+        type: status === 'accepted' ? 'acceptance' : 'rejection',
+        invitation_id: invitationId,
+        is_read: false
+      });
+    
+    if (createError) {
+      console.error('Message creation error:', createError);
+      throw createError;
+    }
     
     return true;
   } catch (error) {

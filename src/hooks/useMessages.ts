@@ -45,9 +45,41 @@ export const useMessages = () => {
       if (activeTab === 'inbox') {
         // 受信メッセージの取得（APIサービスを使用）
         fetchedMessages = await fetchInboxMessages(supabase, userId);
+        
+        // 受信箱のメッセージをフィルタリング
+        // - 自分が送信者の場合：招待が承諾/拒否された場合のみ表示
+        // - 自分が受信者の場合：保留中の招待のみ表示
+        fetchedMessages = fetchedMessages.filter(msg => {
+          if (msg.type === 'invitation') {
+            if (msg.sender_id === userId) {
+              // 自分が送信者の場合（自分が送ったスカウトへの返事）
+              return msg.invitation?.status === 'accepted' || msg.invitation?.status === 'rejected';
+            } else {
+              // 自分が受信者の場合（相手からのスカウト）
+              return msg.invitation?.status === 'pending';
+            }
+          }
+          return true; // 招待タイプ以外のメッセージはすべて表示
+        });
       } else {
         // 送信メッセージの取得（APIサービスを使用）
         fetchedMessages = await fetchSentMessages(supabase, userId);
+        
+        // 送信箱のメッセージをフィルタリング
+        // - 自分が送信者の場合：保留中の招待のみ表示
+        // - 自分が受信者の場合：招待に対する自分の応答を表示
+        fetchedMessages = fetchedMessages.filter(msg => {
+          if (msg.type === 'invitation') {
+            if (msg.sender_id === userId) {
+              // 自分が送信者の場合（自分が送ったスカウト）
+              return msg.invitation?.status === 'pending';
+            } else {
+              // 自分が受信者の場合（相手からのスカウトに対する自分の応答）
+              return msg.invitation?.status === 'accepted' || msg.invitation?.status === 'rejected';
+            }
+          }
+          return true; // 招待タイプ以外のメッセージはすべて表示
+        });
       }
       
       setMessages(fetchedMessages);

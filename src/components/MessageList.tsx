@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExtendedMessageType } from '../types';
 import { getStatusText, getMessageIcon } from '../utils/messageUtils';
+import { useSupabase } from '../contexts/SupabaseContext';
 
 interface MessageListProps {
   messages: ExtendedMessageType[];
   activeTab: 'inbox' | 'sent';
   loading: boolean;
   onMessageClick: (message: ExtendedMessageType) => void;
-  userId?: string; // 現在のユーザーIDを追加
 }
 
 /**
@@ -18,9 +18,22 @@ const MessageList: React.FC<MessageListProps> = ({
   messages,
   activeTab,
   loading,
-  onMessageClick,
-  userId // 現在のユーザーIDを受け取る
+  onMessageClick
 }) => {
+  const { supabase } = useSupabase();
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
+  
+  // ユーザーIDを取得
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setCurrentUserId(data.user.id);
+      }
+    };
+    
+    fetchUserId();
+  }, [supabase]);
   // アイコンの背景色を取得
   const getIconColor = (type: string, isInbox: boolean) => {
     // 受信箱の場合
@@ -116,7 +129,7 @@ const MessageList: React.FC<MessageListProps> = ({
                   <span className="text-white text-xs">{getMessageIcon(message.type, activeTab === 'inbox')}</span>
                 </div>
                 <div className="text-[#61717D] text-sm font-bold w-full">
-                  {getStatusText(message, activeTab === 'inbox', userId)}
+                  {getStatusText(message, activeTab === 'inbox', currentUserId)}
                 </div>
               </div>
               
