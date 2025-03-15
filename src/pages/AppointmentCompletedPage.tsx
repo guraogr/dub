@@ -92,6 +92,13 @@ const AppointmentCompletedPage = () => {
             <div className="font-medium">{appointment.availability.genre}</div>
           </div>
         )}
+
+        {appointment.availability.comment && (
+          <div className="mb-4">
+            <div className="text-sm text-gray-500">コメント</div>
+            <div className="font-medium">{appointment.availability.comment}</div>
+          </div>
+        )}
         
         {isPending ? (
           <div className="bg-yellow-50 p-4 mb-6">
