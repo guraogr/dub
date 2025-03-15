@@ -6,8 +6,9 @@ import BottomNavigation from '../components/BottomNavigation';
 
 const CreateAvailabilityPage = () => {
   const [date, setDate] = useState('');
-  const [startTime, setStartTime] = useState('00:00');
-  const [endTime, setEndTime] = useState('23:30');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
 
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,21 +22,101 @@ const CreateAvailabilityPage = () => {
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
     setDate(formattedDate);
+    
+    // 現在時刻以降の30分単位の時間スロットを生成
+    updateAvailableTimeSlots(today);
   }, []);
 
+  // 選択した日付が変更されたときに利用可能な時間スロットを更新
+  useEffect(() => {
+    if (date) {
+      const selectedDate = new Date(date);
+      const today = new Date();
+      
+      // 日付が今日かどうかチェック
+      const isToday = selectedDate.toDateString() === today.toDateString();
+      
+      if (isToday) {
+        // 今日の場合は現在時刻以降のスロットを生成
+        updateAvailableTimeSlots(today);
+      } else {
+        // 今日以外の場合は全ての時間スロットを生成
+        generateAllTimeSlots();
+      }
+    }
+  }, [date]);
+  
+  // 現在時刻以降の利用可能な時間スロットを更新する関数
+  const updateAvailableTimeSlots = (currentDate: Date) => {
+    const hours = currentDate.getHours();
+    const minutes = currentDate.getMinutes();
+    
+    // 現在の30分単位の時間を計算
+    let currentSlot = hours;
+    let currentMinuteSlot = minutes < 30 ? 0 : 30;
+    
+    // 次の30分単位のスロットに進める
+    if (minutes > 30) {
+      currentSlot += 1;
+      currentMinuteSlot = 0;
+    } else if (minutes > 0 && minutes <= 30) {
+      currentMinuteSlot = 30;
+    }
+    
+    const slots: string[] = [];
+    
+    // 現在時刻以降の30分単位のスロットを生成
+    for (let h = currentSlot; h < 24; h++) {
+      const startMinute = h === currentSlot ? currentMinuteSlot : 0;
+      
+      for (let m = startMinute; m < 60; m += 30) {
+        const formattedHour = h.toString().padStart(2, '0');
+        const formattedMinute = m.toString().padStart(2, '0');
+        slots.push(`${formattedHour}:${formattedMinute}`);
+      }
+    }
+    
+    setAvailableTimeSlots(slots);
+    
+    // デフォルト値を設定
+    if (slots.length > 0) {
+      setStartTime(slots[0]);
+      setEndTime(slots.length > 1 ? slots[1] : slots[0]);
+    }
+  };
+  
+  // 全ての30分単位の時間スロットを生成する関数
+  const generateAllTimeSlots = () => {
+    const slots: string[] = [];
+    
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const formattedHour = h.toString().padStart(2, '0');
+        const formattedMinute = m.toString().padStart(2, '0');
+        slots.push(`${formattedHour}:${formattedMinute}`);
+      }
+    }
+    
+    setAvailableTimeSlots(slots);
+    
+    // デフォルト値を設定
+    if (slots.length > 0) {
+      setStartTime(slots[0]);
+      setEndTime(slots.length > 1 ? slots[1] : slots[0]);
+    }
+  };
+  
   // 終日フラグが変更された時の処理
   useEffect(() => {
-    if (isFullDay === false) return;
     if (isFullDay) {
       setStartTime('00:00');
-      setEndTime('23:59');
-    } 
-    else {
-      // フラグがOFFになった時、値をリセット（またはデフォルト値に設定）
-      setStartTime('');
-      setEndTime('');
+      setEndTime('23:30');
+    } else if (availableTimeSlots.length > 0) {
+      // フラグがOFFになった時、利用可能な最初のスロットに設定
+      setStartTime(availableTimeSlots[0]);
+      setEndTime(availableTimeSlots.length > 1 ? availableTimeSlots[1] : availableTimeSlots[0]);
     }
-  }, [isFullDay]);
+  }, [isFullDay, availableTimeSlots]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,53 +215,69 @@ const CreateAvailabilityPage = () => {
           />
         </div>
         {/* 時間選択（終日がOFFの場合のみ表示） */}
-{!isFullDay ? (
-  <div className="grid grid-cols-2 gap-4">
-    <div>
-      <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-        開始時間
-      </label>
-      <select
-        id="startTime"
-        value={startTime}
-        onChange={(e) => setStartTime(e.target.value)}
-        className="mt-1 block w-full border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        required
-      >
-        {Array.from({ length: 48 }).map((_, i) => (
-          <option key={i} value={`${("0" + Math.floor(i / 2)).slice(-2)}:${(i % 2) ? "30" : "00"}`}>
-            {`${("0" + Math.floor(i / 2)).slice(-2)}:${(i % 2) ? "30" : "00"}`}
-          </option>
-        ))}
-      </select>
-    </div>
-    <div>
-      <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
-        終了時間
-      </label>
-      <select
-        id="endTime"
-        value={endTime}
-        onChange={(e) => setEndTime(e.target.value)}
-        className="mt-1 block w-full border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        required
-      >
-        {Array.from({ length: 48 }).map((_, i) => (
-          <option key={i} value={`${("0" + Math.floor(i / 2)).slice(-2)}:${(i % 2) ? "30" : "00"}`}>
-            {`${("0" + Math.floor(i / 2)).slice(-2)}:${(i % 2) ? "30" : "00"}`}
-          </option>
-        ))}
-      </select>
-    </div>
-  </div>
-) : (
-  <div className="p-2 bg-gray-50 rounded-md border border-gray-200">
-    <div className="text-sm text-gray-500">
-      設定時間: 00:00 - 23:59（終日）
-    </div>
-  </div>
-)}
-        
+        {!isFullDay ? (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
+                開始時間
+              </label>
+              <select
+                id="startTime"
+                value={startTime}
+                onChange={(e) => {
+                  const newStartTime = e.target.value;
+                  setStartTime(newStartTime);
+                  
+                  // 開始時間が終了時間より後の場合、終了時間を調整
+                  if (newStartTime >= endTime) {
+                    // 開始時間の次のスロットを探す
+                    const startIndex = availableTimeSlots.indexOf(newStartTime);
+                    if (startIndex < availableTimeSlots.length - 1) {
+                      setEndTime(availableTimeSlots[startIndex + 1]);
+                    } else {
+                      setEndTime(newStartTime);
+                    }
+                  }
+                }}
+                className="mt-1 block w-full border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                {availableTimeSlots.map((timeSlot, index) => (
+                  <option key={index} value={timeSlot}>
+                    {timeSlot}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
+                終了時間
+              </label>
+              <select
+                id="endTime"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="mt-1 block w-full border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                {availableTimeSlots
+                  .filter(time => time >= startTime) // 開始時間以降のスロットのみ表示
+                  .map((timeSlot, index) => (
+                    <option key={index} value={timeSlot}>
+                      {timeSlot}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          </div>
+        ) : (
+          <div className="p-2 bg-gray-50 rounded-md border border-gray-200">
+            <div className="text-sm text-gray-500">
+              設定時間: 00:00 - 23:30（終日）
+            </div>
+          </div>
+        )}
+                
         {/* コメント入力 */}
         <div>
           <label htmlFor="comment" className="block text-sm font-medium text-gray-700">
