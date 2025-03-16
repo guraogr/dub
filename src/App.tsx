@@ -10,7 +10,6 @@ import HomePage from './pages/HomePage';
 import MessagesPage from './pages/MessagesPage';
 import CreateAvailabilityPage from './pages/CreateAvailabilityPage';
 import AppointmentCompletedPage from './pages/AppointmentCompletedPage';
-// NotificationModalはリアルタイム表示をやめたのでインポートも削除
 import ProfilePage from './pages/ProfilePage';
 import MyAvailabilitiesPage from './pages/MyAvailabilitiesPage';
 import AppLayout from './layouts/AppLayout';

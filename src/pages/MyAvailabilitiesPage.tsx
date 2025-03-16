@@ -87,17 +87,11 @@ const MyAvailabilitiesPage = () => {
         return;
       }
       
-      // とりあえず全ての予定を表示するようにしてみる
-      setAvailabilities(data);
-      console.log('全ての予定を表示します:', data.length);
-      
-      // 以下のフィルタリング処理は一時的にコメントアウト
-      /*
       // フィルタリング処理
       const filteredData = data?.filter(item => {
         console.log('フィルタリング対象:', item.id, item.date, item.start_time, item.end_time);
         
-        // 承諾済み招待の確認（これは既存のロジックと同じ）
+        // 承諾済み招待の確認
         const hasAcceptedInvitation = item.invitations && 
           item.invitations.some((inv: any) => inv.status === 'accepted');
         
@@ -140,7 +134,6 @@ const MyAvailabilitiesPage = () => {
       
       console.log('フィルタリング後の予定:', filteredData);
       setAvailabilities(filteredData);
-      */
       
     } catch (error) {
       console.error('予定の取得に失敗しました', error);
