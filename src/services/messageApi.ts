@@ -250,12 +250,34 @@ export const respondToInvitation = async (
       content = '遊びの誘いをお断りしました';
     }
     
+    // ユーザー情報を取得
+    const { data: userData, error: userError } = await executeQueryWithTimeout(
+      async () => supabase.auth.getUser()
+    );
+    
+    if (userError) {
+      console.error('ユーザー情報取得エラー:', userError);
+      throw userError;
+    }
+    
+    // 現在のユーザーIDを確認
+    const currentUserId = userData.user?.id;
+    
+    if (!currentUserId) {
+      throw new Error('ユーザーIDが取得できませんでした');
+    }
+    
+    // 現在のユーザーIDとメッセージの受信者IDが一致するか確認
+    if (currentUserId !== messageData.recipient_id) {
+      throw new Error('メッセージの受信者IDと現在のユーザーIDが一致しません');
+    }
+    
     // 新しいメッセージを作成
     const { error: createError } = await executeQueryWithTimeout(
       async () => supabase
         .from('messages')
         .insert({
-          sender_id: messageData.recipient_id,
+          sender_id: currentUserId, // 現在のユーザーIDを使用
           recipient_id: messageData.sender_id,
           content: content,
           type: status === 'accepted' ? 'acceptance' : 'rejection',
@@ -265,8 +287,8 @@ export const respondToInvitation = async (
     );
     
     if (createError) {
-      console.error('メッセージ作成エラー:', createError);
-      throw createError;
+      console.error('自分宛メッセージの作成エラー:', createError);
+      throw new Error(`自分宛メッセージの作成エラー: ${createError.message}`);
     }
     
     // キャッシュをクリアして最新データを取得できるようにする
@@ -280,7 +302,6 @@ export const respondToInvitation = async (
     return false;
   }
 };
-
 /**
  * メッセージの接続状態を確認する
  */

@@ -99,21 +99,21 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notification, onC
         throw new Error(`送信者向けメッセージの作成エラー: ${sendError.message}`);
       }
         
-      // 自分宛のメッセージも作成
-      const { error: selfError } = await supabase
-        .from('messages')
-        .insert({
-          sender_id: senderData.sender_id,
-          recipient_id: userData.user.id,
-          invitation_id: notification.invitation_id,
-          type: messageType,
-          content: recipientContent,
-          is_read: true
-        });
-      
-      if (selfError) {
-        throw new Error(`自分宛メッセージの作成エラー: ${selfError.message}`);
-      }
+            // 自分宛のメッセージも作成
+            const { error: selfError } = await supabase
+            .from('messages')
+            .insert({
+              sender_id: userData.user.id, // 現在のユーザーIDを使用
+              recipient_id: userData.user.id, // 自分宛のメッセージ
+              invitation_id: notification.invitation_id,
+              type: messageType,
+              content: recipientContent,
+              is_read: true
+            });
+          
+          if (selfError) {
+            throw new Error(`自分宛メッセージの作成エラー: ${selfError.message}`);
+          }
       
       // モーダルを閉じる
       onClose();
