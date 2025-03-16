@@ -46,7 +46,23 @@ export const useMessagesPage = () => {
     };
     
     checkUser();
-  }, [navigate, supabase]);
+    
+    // ページがフォーカスを取得したときにメッセージを再取得
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user) {
+        console.log('ページがフォーカスを取得しました。メッセージを再取得します。');
+        fetchMessages();
+      }
+    };
+    
+    // ページ表示状態の変更を監視
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // クリーンアップ関数
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [navigate, supabase, fetchMessages, user]);
 
   // タイムアウトと接続状態管理用の参照を保持
   const timeoutRef = useRef<number | null>(null);
@@ -259,6 +275,14 @@ export const useMessagesPage = () => {
     return result;
   }, [handleResponseToInvitation]);
 
+  // 他のページから戻ってきたときにメッセージを更新する関数
+  const refreshMessages = useCallback(() => {
+    if (user) {
+      console.log('メッセージを手動で更新します');
+      fetchMessages();
+    }
+  }, [user, fetchMessages]);
+  
   return {
     user,
     messages,
@@ -271,6 +295,7 @@ export const useMessagesPage = () => {
     closeModal,
     acceptInvitation,
     rejectInvitation,
-    fetchMessages  
+    fetchMessages,
+    refreshMessages
   };
 };

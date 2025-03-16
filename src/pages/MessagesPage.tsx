@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import BottomNavigation from '../components/BottomNavigation';
 import ResponseModal from '../components/ResponseModal';
 import MessageList from '../components/MessageList';
@@ -28,8 +29,12 @@ const MessagesPage: React.FC = () => {
     handleTabChange,
     closeModal,
     acceptInvitation,
-    rejectInvitation
+    rejectInvitation,
+    refreshMessages
   } = useMessagesPage();
+  
+  // 現在のロケーション情報を取得
+  const location = useLocation();
   
   // タイムアウトと接続エラーの状態管理
   const [loadingTimeout, setLoadingTimeout] = useState(false);
@@ -193,7 +198,14 @@ const MessagesPage: React.FC = () => {
     };
   }, [connectionError, loadingTimeout]);
 
-  console.log(messages)
+  // 他のページから戻ってきたときにメッセージを更新
+  useEffect(() => {
+    // ロケーションが変わったときにメッセージを更新
+    console.log('ロケーションが変更されました:', location.pathname);
+    refreshMessages();
+  }, [location, refreshMessages]);
+  
+  console.log(messages);
   // タブオプションの定義
   const tabOptions = [
     { id: 'inbox', label: '受信箱' },

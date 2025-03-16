@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ExtendedMessageType } from '../types';
 import { useSupabase } from '../contexts/SupabaseContext';
 import { fetchInboxMessages, fetchSentMessages, markMessageAsRead, respondToInvitation } from '../services/messageApi';
 import { createEnhancedInvitationMessage } from '../services/messageService';
+import { toast } from 'sonner';
 
 /**
  * メッセージ操作用のカスタムフック
@@ -20,6 +21,9 @@ export const useMessages = () => {
   const [activeTab, setActiveTab] = useState<'inbox' | 'sent'>('inbox');
   const [userId, setUserId] = useState<string | null>(null);
   const { supabase } = useSupabase(); // コンテキストからSupabaseクライアントを取得
+
+  // Supabaseリアルタイム購読のための参照を保持
+  const subscriptionRef = useRef<any>(null);
 
   // ユーザーIDの取得
   useEffect(() => {
@@ -94,8 +98,76 @@ export const useMessages = () => {
   useEffect(() => {
     if (userId) {
       fetchMessages();
+      
+      // リアルタイム購読のセットアップ
+      setupRealtimeSubscription();
     }
+    
+    // クリーンアップ関数
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+      }
+    };
   }, [userId, activeTab, fetchMessages]);
+  
+  // リアルタイム購読のセットアップ
+  const setupRealtimeSubscription = useCallback(() => {
+    if (!userId) return;
+    
+    // 既存の購読をクリーンアップ
+    if (subscriptionRef.current) {
+      subscriptionRef.current.unsubscribe();
+    }
+    
+    // messagesテーブルの変更を購読
+    const subscription = supabase
+      .channel('messages-changes')
+      .on('postgres_changes', {
+        event: '*', // insert, update, deleteすべてのイベントを監視
+        schema: 'public',
+        table: 'messages',
+        filter: activeTab === 'inbox' 
+          ? `recipient_id=eq.${userId}` 
+          : `sender_id=eq.${userId}`
+      }, (payload) => {
+        console.log('リアルタイム更新を受信:', payload);
+        
+        // 新しいメッセージが挿入された場合
+        if (payload.eventType === 'INSERT') {
+          const newMessage = payload.new as ExtendedMessageType;
+          
+          // 適切なタブにいるか確認
+          const isInbox = activeTab === 'inbox' && newMessage.recipient_id === userId;
+          const isSent = activeTab === 'sent' && newMessage.sender_id === userId;
+          
+          if (isInbox || isSent) {
+            // トースト通知を表示
+            toast.info('新しいメッセージが届きました', {
+              duration: 3000,
+              style: { background: '#111111', color: '#fff' }
+            });
+            
+            // メッセージリストを更新
+            fetchMessages();
+          }
+        }
+        
+        // メッセージが更新された場合
+        if (payload.eventType === 'UPDATE') {
+          const updatedMessage = payload.new as ExtendedMessageType;
+          
+          // メッセージリストを更新
+          fetchMessages();
+        }
+      })
+      .subscribe();
+    
+    // 参照を保存
+    subscriptionRef.current = subscription;
+    
+    console.log('リアルタイム購読を設定しました');
+  }, [userId, activeTab, supabase, fetchMessages]);
 
   // メッセージを既読にする
   const markAsRead = useCallback(async (messageId: string) => {
