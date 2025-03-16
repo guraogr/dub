@@ -216,13 +216,19 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
     let timeoutId: number;
     
     if (loading && availabilities.length === 0) {
-      // 5秒後にタイムアウトを設定
+      // 3秒後にタイムアウトを設定
       timeoutId = window.setTimeout(() => {
         setLoadingTimeout(true);
         setConnectionError(true);
         console.log('予定データの読み込みがタイムアウトしました');
-        toast.error('データの読み込みに時間がかかっています。ネットワーク環境を確認して再読み込みをお試しください。');
-      }, 5000);
+        toast.error('データの読み込みに時間がかかっています。再接続を試みます。');
+        
+        // 自動的に再接続を試みる
+        setReconnecting(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }, 3000);
     } else if (availabilities.length > 0) {
       // データが読み込まれたらタイムアウトをリセット
       setLoadingTimeout(false);

@@ -20,7 +20,7 @@ let messageCache: {
 const CACHE_TTL = 30 * 1000;
 
 // クエリのタイムアウト設定
-const QUERY_TIMEOUT = 5000; // 5秒
+const QUERY_TIMEOUT = 3000; // 3秒
 
 // タイムアウト付きのクエリ実行関数
 const executeQueryWithTimeout = async <T>(queryFn: () => Promise<T>): Promise<T> => {

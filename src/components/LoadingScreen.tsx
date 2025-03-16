@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface LoadingScreenProps {
   loadingTimeout: boolean;
@@ -13,6 +13,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   reconnecting,
   onReconnect
 }) => {
+  
+
   // エラーメッセージを決定
   const errorMessage = connectionError
     ? 'データの読み込みに時間がかかっています。読み込み中が続く場合は、再読み込みをしてください。'
