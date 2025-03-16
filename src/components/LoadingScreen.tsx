@@ -15,7 +15,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
 }) => {
   // エラーメッセージを決定
   const errorMessage = connectionError
-    ? 'サーバーとの接続に問題が発生しています。ネットワーク環境を確認してください。'
+    ? 'データの読み込みに時間がかかっています。読み込み中が続く場合は、再読み込みをしてください。'
     : 'データの読み込みに時間がかかっています。読み込み中が続く場合は、再読み込みをしてください。';
   
   return (

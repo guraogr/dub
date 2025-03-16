@@ -89,7 +89,7 @@ export const useMessagesPage = () => {
       
       fetchAndHandleErrors();
       
-      // 10秒後にタイムアウトを設定
+      // 5秒後にタイムアウトを設定
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
@@ -102,7 +102,7 @@ export const useMessagesPage = () => {
           toast.error('データの読み込みがタイムアウトしました。再読み込みしてください。');
           window.dispatchEvent(new CustomEvent('supabase:timeout'));
         }
-      }, 10000) as unknown as number;
+      }, 5000) as unknown as number;
       
       // 定期的な接続確認を設定
       if (connectionCheckRef.current) {

@@ -120,7 +120,7 @@ const ConnectionMonitor: React.FC<ConnectionMonitorProps> = ({ children }) => {
     
     console.log(`Attempting reconnection (${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
     
-    // Timeout after 10 seconds if reconnection doesn't complete
+    // Timeout after 5 seconds if reconnection doesn't complete
     const timeoutId = setTimeout(() => {
       if (reconnecting) {
         console.log('Reconnection attempt timed out');
@@ -132,7 +132,7 @@ const ConnectionMonitor: React.FC<ConnectionMonitorProps> = ({ children }) => {
           attemptReconnect();
         }
       }
-    }, 10000);
+    }, 5000);
     
     // Try to fetch a minimal amount of data to verify connection
     pingServer().then(success => {

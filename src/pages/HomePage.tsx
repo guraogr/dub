@@ -216,13 +216,13 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
     let timeoutId: number;
     
     if (loading && availabilities.length === 0) {
-      // 10秒後にタイムアウトを設定
+      // 5秒後にタイムアウトを設定
       timeoutId = window.setTimeout(() => {
         setLoadingTimeout(true);
         setConnectionError(true);
         console.log('予定データの読み込みがタイムアウトしました');
         toast.error('データの読み込みに時間がかかっています。ネットワーク環境を確認して再読み込みをお試しください。');
-      }, 10000);
+      }, 5000);
     } else if (availabilities.length > 0) {
       // データが読み込まれたらタイムアウトをリセット
       setLoadingTimeout(false);
