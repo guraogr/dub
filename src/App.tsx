@@ -10,20 +10,19 @@ import HomePage from './pages/HomePage';
 import MessagesPage from './pages/MessagesPage';
 import CreateAvailabilityPage from './pages/CreateAvailabilityPage';
 import AppointmentCompletedPage from './pages/AppointmentCompletedPage';
-import NotificationModal from './components/NotificationModal'; 
+// NotificationModalはリアルタイム表示をやめたのでインポートも削除
 import ProfilePage from './pages/ProfilePage';
 import MyAvailabilitiesPage from './pages/MyAvailabilitiesPage';
 import AppLayout from './layouts/AppLayout';
 import ConnectionMonitor from './components/ConnectionMonitor';
 
 // 型定義をインポート
-import { SessionType, NotificationType, MessageType } from './types';
+import { SessionType, MessageType } from './types';
 
 function App() {
   const [session, setSession] = useState<SessionType | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showNotification, setShowNotification] = useState(false);
-  const [notification, setNotification] = useState<NotificationType | null>(null);
+  // メッセージページでメッセージを確認するため、リアルタイムでモーダルは表示しないようにしました
 
   useEffect(() => {
     // 現在のセッションを取得
@@ -45,80 +44,7 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  /**
-   * 通知データを取得する関数
-   * @param message 新しいメッセージ
-   */
-  const fetchNotificationData = async (message: MessageType) => {
-    try {
-      // 送信者情報を取得
-      const { data: senderData, error: senderError } = await supabase
-        .from('users')
-        .select('name, avatar_url')
-        .eq('id', message.sender_id)
-        .single();
-      
-      if (senderError) {
-        throw new Error(`送信者情報の取得エラー: ${senderError.message}`);
-      }
-        
-      // 招待IDの確認
-      if (!message.invitation_id) {
-        throw new Error('メッセージに招待IDが含まれていません');
-      }
-      
-      // 招待情報を取得
-      const { data: invitationData, error: invitationError } = await supabase
-        .from('invitations')
-        .select(`
-          id,
-          availability_id
-        `)
-        .eq('id', message.invitation_id)
-        .single();
-      
-      if (invitationError) {
-        throw new Error(`誘い情報の取得エラー: ${invitationError.message}`);
-      }
-      
-      if (!invitationData || !invitationData.availability_id) {
-        throw new Error('誘いに関連する予定情報がありません');
-      }
-        
-      // 予定情報を取得
-      const { data: availabilityData, error: availabilityError } = await supabase
-        .from('availabilities')
-        .select('date, start_time, end_time, comment')
-        .eq('id', invitationData.availability_id)
-        .single();
-      
-      if (availabilityError) {
-        throw new Error(`予定情報の取得エラー: ${availabilityError.message}`);
-      }
-      
-      if (!availabilityData) {
-        throw new Error('予定情報が見つかりませんでした');
-      }
-          
-      // 通知データを設定
-      const notificationData: NotificationType = {
-        id: message.id,
-        invitation_id: message.invitation_id,
-        sender: senderData,
-        availability: availabilityData,
-        created_at: message.created_at
-      };
-      
-      setNotification(notificationData);
-      setShowNotification(true);
-      
-    } catch (error) {
-      // エラーメッセージを表示
-      const errorMessage = error instanceof Error ? error.message : '通知データの取得に失敗しました';
-      console.error('通知データの取得エラー:', error);
-      toast.error(errorMessage);
-    }
-  };
+
 
   /**
    * メッセージ受信時のハンドラー
@@ -127,12 +53,16 @@ function App() {
   const handleMessageReceived = (payload: any) => {
     const newMessage = payload.new as MessageType;
     
-    // Toasterを使用して通知
-    toast.info('新しいメッセージを受信しました');
-    
-    // 誘いタイプのメッセージのみ通知モーダルを表示
+    // メッセージタイプに応じた通知を表示
     if (newMessage.type === 'invitation') {
-      fetchNotificationData(newMessage);
+      // 誘いタイプのメッセージの場合は特別な通知を表示
+      toast.info('遊びの誘いが届きました。スカウト画面から確認してください。', {
+        duration: 5000,
+        position: 'top-center'
+      });
+    } else {
+      // その他のメッセージの場合は通常の通知を表示
+      toast.info('新しいメッセージを受信しました');
     }
   };
   
@@ -185,13 +115,7 @@ function App() {
           {/* カスタムToasterコンポーネントを追加 */}
           <CustomToaster />
           
-          {/* 通知モーダル */}
-          {showNotification && notification && (
-            <NotificationModal
-              notification={notification}
-              onClose={() => setShowNotification(false)}
-            />
-          )}
+          {/* リアルタイムでモーダルを表示しないようにしました */}
           
           <Routes>
             <Route path="/login" element={!session ? <LoginPage /> : <Navigate to="/" />} />
