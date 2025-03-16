@@ -270,6 +270,7 @@ export const useMessagesPage = () => {
     handleTabChange,
     closeModal,
     acceptInvitation,
-    rejectInvitation
+    rejectInvitation,
+    fetchMessages  
   };
 };

@@ -14,6 +14,7 @@ import NotificationModal from './components/NotificationModal';
 import ProfilePage from './pages/ProfilePage';
 import MyAvailabilitiesPage from './pages/MyAvailabilitiesPage';
 import AppLayout from './layouts/AppLayout';
+import ConnectionMonitor from './components/ConnectionMonitor';
 
 // 型定義をインポート
 import { SessionType, NotificationType, MessageType } from './types';
@@ -177,32 +178,34 @@ function App() {
 
   return (
     <SupabaseProvider>
-      <Router>
-        {/* 全体をAppLayoutで囲む */}
-        <AppLayout>
-        {/* カスタムToasterコンポーネントを追加 */}
-        <CustomToaster />
-        
-        {/* 通知モーダル */}
-        {showNotification && notification && (
-          <NotificationModal
-            notification={notification}
-            onClose={() => setShowNotification(false)}
-          />
-        )}
-        
-        <Routes>
-          <Route path="/login" element={!session ? <LoginPage /> : <Navigate to="/" />} />
-          <Route path="/register" element={!session ? <RegisterPage /> : <Navigate to="/" />} />
-          <Route path="/messages" element={session ? <MessagesPage /> : <Navigate to="/login" />} />
-          <Route path="/appointment-completed/:id" element={session ? <AppointmentCompletedPage /> : <Navigate to="/login" />} />
-          <Route path="/profile" element={session ? <ProfilePage /> : <Navigate to="/login" />} />
-          <Route path="/myavailabilities" element={session ? <MyAvailabilitiesPage /> : <Navigate to="/login" />} />
-          <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
-          <Route path="/create-availability" element={session ? <CreateAvailabilityPage /> : <Navigate to="/login" />} />
-        </Routes>
-        </AppLayout>
-      </Router>
+      <ConnectionMonitor>
+        <Router>
+          {/* 全体をAppLayoutで囲む */}
+          <AppLayout>
+          {/* カスタムToasterコンポーネントを追加 */}
+          <CustomToaster />
+          
+          {/* 通知モーダル */}
+          {showNotification && notification && (
+            <NotificationModal
+              notification={notification}
+              onClose={() => setShowNotification(false)}
+            />
+          )}
+          
+          <Routes>
+            <Route path="/login" element={!session ? <LoginPage /> : <Navigate to="/" />} />
+            <Route path="/register" element={!session ? <RegisterPage /> : <Navigate to="/" />} />
+            <Route path="/messages" element={session ? <MessagesPage /> : <Navigate to="/login" />} />
+            <Route path="/appointment-completed/:id" element={session ? <AppointmentCompletedPage /> : <Navigate to="/login" />} />
+            <Route path="/profile" element={session ? <ProfilePage /> : <Navigate to="/login" />} />
+            <Route path="/myavailabilities" element={session ? <MyAvailabilitiesPage /> : <Navigate to="/login" />} />
+            <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
+            <Route path="/create-availability" element={session ? <CreateAvailabilityPage /> : <Navigate to="/login" />} />
+          </Routes>
+          </AppLayout>
+        </Router>
+      </ConnectionMonitor>
     </SupabaseProvider>
   );
 }

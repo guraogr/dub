@@ -5,14 +5,13 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Supabaseクライアントの作成
-// リアルタイム接続の設定を改善
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   realtime: {
     params: {
       eventsPerSecond: 10,
     },
-    // タイムアウトを非常に長めに設定 (20分)
-    timeout: 1200000
+    // タイムアウトを短めに設定 (2分)
+    timeout: 120000
   },
   auth: {
     persistSession: true,
@@ -33,23 +32,49 @@ const channel = supabase.channel('system');
 
 // 切断時の再接続処理
 let reconnectAttempts = 0;
-const maxReconnectAttempts = 20; // 再接続試行回数を増やす
-const reconnectInterval = 5000; // 5秒に変更
+const maxReconnectAttempts = 10; 
+const reconnectInterval = 3000; 
 
 // 定期的な接続確認とピング送信
-const pingInterval = 120000; // 2分に変更
+const pingInterval = 60000; 
 let pingTimer: number | null = null;
+let reconnectTimer: number | null = null;
+
+// 接続状態の変数を定義
+const connectionState = {
+  isConnected: true,
+  lastPingSuccess: Date.now(),
+  lastActivity: Date.now()
+};
 
 // ピング関数
-const pingServer = () => {
-  if (channel) {
+const pingServer = async () => {
+  try {
     console.log('サーバーにピングを送信します');
-    // ダミーメッセージを送信して接続を維持
-    channel.send({
-      type: 'broadcast',
-      event: 'ping',
-      payload: { timestamp: new Date().toISOString() }
-    });
+    
+    // 実際のデータベースクエリを使用して接続を確認
+    const { count, error } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .limit(1);
+      
+    if (error) {
+      console.error('ピングエラー:', error);
+      connectionState.isConnected = false;
+      window.dispatchEvent(new CustomEvent('supabase:connection-error'));
+      return false;
+    }
+    
+    // 成功
+    connectionState.isConnected = true;
+    connectionState.lastPingSuccess = Date.now();
+    console.log('ピング成功:', { count });
+    return true;
+  } catch (error) {
+    console.error('ピング例外:', error);
+    connectionState.isConnected = false;
+    window.dispatchEvent(new CustomEvent('supabase:connection-error'));
+    return false;
   }
 };
 
@@ -58,8 +83,28 @@ const startPingTimer = () => {
   if (pingTimer) {
     clearInterval(pingTimer);
   }
-  pingTimer = window.setInterval(pingServer, pingInterval) as unknown as number;
+  pingTimer = window.setInterval(async () => {
+    // 最後のアクティビティから3分以上経過したらピングを送信
+    const now = Date.now();
+    const inactiveTime = now - connectionState.lastActivity;
+    
+    if (inactiveTime > 3 * 60 * 1000) {
+      console.log(`${Math.round(inactiveTime / 1000)}秒間非アクティブです。ピングを送信します。`);
+      await pingServer();
+    }
+  }, pingInterval) as unknown as number;
 };
+
+// ユーザーアクティビティ記録
+const recordActivity = () => {
+  connectionState.lastActivity = Date.now();
+};
+
+// アクティビティイベントリスナーを設定
+window.addEventListener('mousemove', recordActivity);
+window.addEventListener('keydown', recordActivity);
+window.addEventListener('touchstart', recordActivity);
+window.addEventListener('click', recordActivity);
 
 // 再接続関数
 const attemptReconnect = () => {
@@ -67,46 +112,66 @@ const attemptReconnect = () => {
     reconnectAttempts++;
     console.log(`再接続試行 ${reconnectAttempts}/${maxReconnectAttempts}`);
     
-    setTimeout(() => {
-      channel.subscribe((status) => {
-        console.log(`再接続ステータス: ${status}`);
-        if (status === 'SUBSCRIBED') {
-          reconnectAttempts = 0; // 成功したらカウンターをリセット
-          startPingTimer(); // ピングタイマーを開始
-          // アプリ全体の再読み込みイベントを発行
-          window.dispatchEvent(new CustomEvent('supabase:reconnected'));
-        }
-      });
-    }, reconnectInterval * Math.min(reconnectAttempts, 5)); // 再試行間隔を増やす（最大で5倍まで）
+    // 前回のタイマーをクリア
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+    }
+    
+    reconnectTimer = window.setTimeout(async () => {
+      // 接続を確認
+      const success = await pingServer();
+      
+      if (success) {
+        console.log('再接続成功');
+        reconnectAttempts = 0;
+        connectionState.isConnected = true;
+        startPingTimer();
+        window.dispatchEvent(new CustomEvent('supabase:reconnected'));
+      } else {
+        console.log('再接続失敗、再試行します');
+        attemptReconnect();
+      }
+    }, reconnectInterval * Math.min(reconnectAttempts, 3)) as unknown as number;
   } else {
     console.error('再接続の試行回数が上限に達しました。ページを再読み込みしてください。');
-    // アプリ全体の再読み込み失敗イベントを発行
     window.dispatchEvent(new CustomEvent('supabase:reconnect-failed'));
   }
 };
 
 // チャンネルの設定
 channel
+  .on('presence', { event: 'sync' }, () => {
+    console.log('プレゼンス同期されました');
+    connectionState.isConnected = true;
+    connectionState.lastActivity = Date.now();
+  })
   .on('system', { event: 'disconnected' }, () => {
     console.log('リアルタイム接続が切断されました。再接続を試みます。');
+    connectionState.isConnected = false;
+    
     if (pingTimer) {
       clearInterval(pingTimer);
       pingTimer = null;
     }
+    
+    window.dispatchEvent(new CustomEvent('supabase:connection-error'));
     attemptReconnect();
   })
   .on('system', { event: 'connected' }, () => {
     console.log('リアルタイム接続が確立されました');
+    connectionState.isConnected = true;
     reconnectAttempts = 0;
     startPingTimer();
-  })
-  .on('broadcast', { event: 'ping' }, (payload) => {
-    console.log('ピング応答を受信しました', payload);
+    window.dispatchEvent(new CustomEvent('supabase:reconnected'));
   })
   .subscribe((status) => {
     console.log(`初期接続ステータス: ${status}`);
     if (status === 'SUBSCRIBED') {
+      connectionState.isConnected = true;
       startPingTimer();
+    } else if (status === 'CHANNEL_ERROR') {
+      connectionState.isConnected = false;
+      window.dispatchEvent(new CustomEvent('supabase:connection-error'));
     }
   });
 
@@ -139,13 +204,31 @@ export const handleSupabaseError = (error: any, defaultMessage = 'エラーが�
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     console.log('アプリがフォアグラウンドに戻りました。接続を確認します。');
-    // アプリが再表示されたときに再接続を確認
-    if (channel) {
-      channel.send({
-        type: 'broadcast',
-        event: 'ping',
-        payload: { timestamp: new Date().toISOString() }
+    
+    // 最後のピング成功から1分以上経過している場合は接続を確認
+    const now = Date.now();
+    const timeSinceLastPing = now - connectionState.lastPingSuccess;
+    
+    if (timeSinceLastPing > 60000) {
+      console.log(`最後のピングから${Math.round(timeSinceLastPing / 1000)}秒経過しています。接続を確認します。`);
+      pingServer().then(success => {
+        if (success) {
+          console.log('ページ再表示後の接続確認に成功しました');
+        } else {
+          console.log('ページ再表示後の接続確認に失敗しました。再接続を試みます');
+          attemptReconnect();
+        }
       });
     }
   }
 });
+
+// 接続状態取得関数
+export const getConnectionState = () => {
+  return connectionState;
+};
+
+// 手動でピングを送信する関数
+export const checkConnection = async () => {
+  return await pingServer();
+};

@@ -1,49 +1,25 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import InviteModal from '../components/InviteModal';
 import BottomNavigation from '../components/BottomNavigation';
-
-interface Invitation {
-  id: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  sender_id: string;
-  recipient_id: string;
-  availability_id: string;
-}
-
-interface UserProfile {
-  id: string;
-  name: string;
-  avatar_url: string;
-}
-
-interface Availability {
-  id: string;
-  user_id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  comment: string;
-  genre?: string;
-  user: UserProfile;
-  invitations?: Invitation[];
-}
+import LoadingScreen from '../components/LoadingScreen';
 
 const HomePage = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const currentDate = new Date();
   const [availabilities, setAvailabilities] = useState<any[]>([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
   
-
-
-
+  // タイムアウトと接続エラーの状態管理
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [connectionError, setConnectionError] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
+  
   // ユーザーの認証状態を確認
   useEffect(() => {
     const checkUser = async () => {
@@ -216,8 +192,15 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
         console.log('フィルタリング後の予定:', filteredData);
         setAvailabilities(filteredData);
         
+        // データが取得できたらタイムアウトとエラー状態をリセット
+        setLoadingTimeout(false);
+        setConnectionError(false);
+        setReconnecting(false);
+        
       } catch (error) {
         console.error('予定の取得に失敗しました', error);
+        // エラーが発生した場合は接続エラーを設定
+        setConnectionError(true);
       } finally {
         setLoading(false);
       }
@@ -226,7 +209,34 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
     if (user) {
       fetchAvailabilities();
     }
-  }, [user,selectedDate]);
+  }, [user, selectedDate]);
+  
+  // ローディング状態のタイムアウト処理
+  useEffect(() => {
+    let timeoutId: number;
+    
+    if (loading && availabilities.length === 0) {
+      // 10秒後にタイムアウトを設定
+      timeoutId = window.setTimeout(() => {
+        setLoadingTimeout(true);
+        setConnectionError(true);
+        console.log('予定データの読み込みがタイムアウトしました');
+        toast.error('データの読み込みに時間がかかっています。ネットワーク環境を確認して再読み込みをお試しください。');
+      }, 10000);
+    } else if (availabilities.length > 0) {
+      // データが読み込まれたらタイムアウトをリセット
+      setLoadingTimeout(false);
+      setConnectionError(false);
+      setReconnecting(false);
+    }
+    
+    // クリーンアップ関数
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [loading, availabilities.length]);
   
   
   // ユーザーを選択して誘いモーダルを表示
@@ -279,7 +289,7 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
       if (msgError) throw msgError;
   
       // モーダルを閉じる
-      setModalOpen(false);
+      setShowInviteModal(false);
       
       // AppointmentCompletedPageに遷移する
       navigate(`/appointment-completed/${invitationData[0].id}`);
@@ -294,11 +304,50 @@ const [selectedDate, setSelectedDate] = useState(todayFormatted);
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">読み込み中...</div>;
+    return (
+      <LoadingScreen
+        loadingTimeout={loadingTimeout}
+        connectionError={connectionError}
+        reconnecting={reconnecting}
+        onReconnect={() => {
+          setReconnecting(true);
+          setConnectionError(false);
+          setLoadingTimeout(false);
+          window.location.reload();
+        }}
+      />
+    );
   }
 
   return (
     <div className="py-8">
+      {/* 接続エラー表示 */}
+      {connectionError && !loading && (
+        <div className="max-w-4xl mx-auto px-4 mb-4">
+          <div className="p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+            <div className="flex items-center">
+              <svg className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <p>サーバーとの接続に問題が発生しています。ネットワーク環境を確認してください。</p>
+            </div>
+            <div className="mt-2">
+              <button
+                onClick={() => {
+                  setReconnecting(true);
+                  setConnectionError(false);
+                  setLoadingTimeout(false);
+                  window.location.reload();
+                }}
+                className="px-4 py-2 bg-yellow-200 hover:bg-yellow-300 rounded-md text-sm transition-colors"
+              >
+                {reconnecting ? '再接続中...' : '再接続する'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* 日付選択部分 - 左右にはみ出しても良い */}
       <div className="w-full mb-4">
         <div className="scroll_hide overflow-x-auto">

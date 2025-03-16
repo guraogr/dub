@@ -6,6 +6,8 @@ import Tabs from '../components/ui/Tabs';
 import { useMessagesPage } from '../hooks/useMessagesPage';
 import { toast } from 'sonner';
 import { clearMessageCache } from '../services/messageApi';
+import ConnectionMonitor from '../components/ConnectionMonitor';
+import LoadingScreen from '../components/LoadingScreen';
 
 /**
  * メッセージページコンポーネント
@@ -200,78 +202,48 @@ const MessagesPage: React.FC = () => {
 
   // ローディング中の表示
   if (loading && messages.length === 0) {
-    // タイムアウトまたは接続エラーが発生した場合
-    if (loadingTimeout || connectionError) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
-            <div className="text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">接続エラー</h2>
-              <p className="text-gray-600 mb-6">サーバーとの通信に問題が発生しました。インターネット接続を確認してください。</p>
-              
-              {reconnecting ? (
-                <div className="flex flex-col items-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
-                  <p className="text-gray-600">再接続を試みています...</p>
-                </div>
-              ) : (
-                <button 
-                  onClick={handleRetry}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition-colors w-full"
-                >
-                  再読み込みする
-                </button>
-              )}
-              
-              <p className="text-sm text-gray-500 mt-4">問題が解決しない場合は、アプリを再起動してください。</p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    // 通常のローディング表示
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-        <p className="text-gray-600">メッセージを読み込み中...</p>
-      </div>
+      <LoadingScreen
+        loadingTimeout={loadingTimeout}
+        connectionError={connectionError}
+        reconnecting={reconnecting}
+        onReconnect={handleRetry}
+      />
     );
   }
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-20">
-      {/* タブコンポーネント */}
-      <Tabs 
-        options={tabOptions} 
-        activeTab={activeTab} 
-        onChange={(tabId) => handleTabChange(tabId as 'inbox' | 'sent')} 
-      />
-
-      {/* メッセージリストコンポーネント */}
-      <MessageList 
-        messages={messages}
-        activeTab={activeTab}
-        loading={loading}
-        onMessageClick={handleMessageClick}
-      />
-      
-      {/* 応答モーダルコンポーネント */}
-      <ResponseModal
-        message={selectedMessage}
-        isOpen={modalOpen}
-        activeTab={activeTab}
-        onClose={closeModal}
-        onAccept={acceptInvitation}
-        onReject={rejectInvitation}
-      />
-      
-      {/* 下部ナビゲーション */}
-      <BottomNavigation />
-    </div>
+    <ConnectionMonitor>
+      <div className="max-w-md mx-auto p-4 pb-20">
+        {/* タブコンポーネント */}
+        <Tabs 
+          options={tabOptions} 
+          activeTab={activeTab} 
+          onChange={(tabId) => handleTabChange(tabId as 'inbox' | 'sent')} 
+        />
+  
+        {/* メッセージリストコンポーネント */}
+        <MessageList 
+          messages={messages}
+          activeTab={activeTab}
+          loading={loading}
+          onMessageClick={handleMessageClick}
+        />
+        
+        {/* 応答モーダルコンポーネント */}
+        <ResponseModal
+          message={selectedMessage}
+          isOpen={modalOpen}
+          activeTab={activeTab}
+          onClose={closeModal}
+          onAccept={acceptInvitation}
+          onReject={rejectInvitation}
+        />
+        
+        {/* 下部ナビゲーション */}
+        <BottomNavigation />
+      </div>
+    </ConnectionMonitor>
   );
 };
 
