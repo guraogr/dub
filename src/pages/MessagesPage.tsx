@@ -240,6 +240,45 @@ const MessagesPage: React.FC = () => {
         <p className="text-gray-600">メッセージを読み込み中...</p>
       </div>
     );
+import React from 'react';
+import BottomNavigation from '../components/BottomNavigation';
+import ResponseModal from '../components/ResponseModal';
+import MessageList from '../components/MessageList';
+import Tabs from '../components/ui/Tabs';
+import { useMessagesPage } from '../hooks/useMessagesPage';
+
+/**
+ * メッセージページコンポーネント
+ * リファクタリングポイント:
+ * 1. UIとロジックを分離（カスタムフックを使用）
+ * 2. 小さなコンポーネントに分割
+ * 3. 再利用可能なUIコンポーネントを使用
+ */
+const MessagesPage: React.FC = () => {
+  // ロジックをカスタムフックに分離
+  const {
+    messages,
+    loading,
+    activeTab,
+    selectedMessage,
+    modalOpen,
+    handleMessageClick,
+    handleTabChange,
+    closeModal,
+    acceptInvitation,
+    rejectInvitation
+  } = useMessagesPage();
+
+  console.log(messages)
+  // タブオプションの定義
+  const tabOptions = [
+    { id: 'inbox', label: '受信箱' },
+    { id: 'sent', label: '送信箱' }
+  ];
+
+  // ローディング中の表示
+  if (loading && messages.length === 0) {
+    return <div className="flex items-center justify-center min-h-screen">読み込み中...</div>;
   }
 
   return (
